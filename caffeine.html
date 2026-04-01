@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Caffeine Decay Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
+  <style>
+    :root {
+      --bg: #e8e6dc;
+      --text: #141413;
+      --text-secondary: #30302e;
+      --accent: #d97757;
+      --accent-hover: #c4654a;
+      --accent-light: rgba(217, 119, 87, 0.08);
+      --border: rgba(20, 20, 19, 0.12);
+      --radius: 4px;
+      --font-serif: Georgia, 'Times New Roman', serif;
+      --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: clamp(1.5rem, 3vw, 3rem) clamp(1rem, 4vw, 3rem);
+    }
+
+    header {
+      margin-bottom: clamp(2rem, 4vw, 3rem);
+    }
+
+    header h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.75rem, 1.5rem + 1.5vw, 3rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+    }
+
+    header p {
+      color: var(--text-secondary);
+      font-size: clamp(0.9rem, 0.85rem + 0.25vw, 1.05rem);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: clamp(1.5rem, 3vw, 3rem);
+      align-items: start;
+    }
+
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Panel */
+    .panel {
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(1rem, 2vw, 1.5rem);
+    }
+
+    .panel h2 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+      font-weight: 400;
+      margin-bottom: 1rem;
+    }
+
+    .presets-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 1.25rem;
+    }
+
+    .preset-btn {
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 200ms ease;
+      white-space: nowrap;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .preset-btn.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .form-group {
+      margin-bottom: 0.85rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin-bottom: 0.3rem;
+    }
+
+    .form-group input,
+    .form-group select {
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.6);
+      color: var(--text);
+      outline: none;
+      transition: border-color 200ms ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--accent);
+    }
+
+    .form-group input {
+      width: 100%;
+    }
+
+    .add-btn {
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 500;
+      width: 100%;
+      padding: 9px 16px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      transition: background 200ms ease;
+      margin-top: 0.25rem;
+    }
+
+    .add-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .drink-log {
+      margin-top: 1.25rem;
+    }
+
+    .drink-log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .drink-log-header h3 {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    .clear-btn {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+
+    .clear-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .drink-log ul {
+      list-style: none;
+    }
+
+    .drink-log li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .drink-log li:last-child {
+      border-bottom: none;
+    }
+
+    .drink-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .drink-name {
+      font-weight: 500;
+    }
+
+    .drink-meta {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .remove-btn {
+      font-family: var(--font-sans);
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 200ms ease;
+    }
+
+    .remove-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .empty-log {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-style: italic;
+      padding: 0.5rem 0;
+    }
+
+    /* Right Panel */
+    .chart-panel {
+      position: sticky;
+      top: 1.5rem;
+    }
+
+    .caffeine-readout {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .caffeine-readout .value {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .caffeine-readout .unit {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .caffeine-readout .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+
+    .chart-container {
+      background: rgba(255, 255, 255, 0.35);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(0.75rem, 1.5vw, 1.25rem);
+      height: 420px;
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Caffeine Decay</h1>
+      <p>Track how caffeine moves through your system</p>
+    </header>
+
+    <div class="layout">
+      <!-- Left Panel: Drink Input -->
+      <div class="panel">
+        <h2>Add a drink</h2>
+
+        <div class="presets-label">Quick pick</div>
+        <div class="presets" id="presets"></div>
+
+        <form id="drink-form">
+          <div class="form-group">
+            <label for="drink-name">Drink</label>
+            <input type="text" id="drink-name" placeholder="e.g. Espresso" required>
+          </div>
+          <div class="form-group">
+            <label for="drink-mg">Caffeine (mg)</label>
+            <input type="number" id="drink-mg" min="1" max="1000" placeholder="150" required>
+          </div>
+          <div class="form-group">
+            <label for="drink-time">Time</label>
+            <input type="time" id="drink-time" required>
+          </div>
+          <button type="submit" class="add-btn">Add Drink</button>
+        </form>
+
+        <div class="drink-log">
+          <div class="drink-log-header">
+            <h3>Today's drinks</h3>
+            <button class="clear-btn" id="clear-all" style="display:none">Clear all</button>
+          </div>
+          <ul id="drink-log"></ul>
+        </div>
+      </div>
+
+      <!-- Right Panel: Chart -->
+      <div class="chart-panel">
+        <div class="caffeine-readout">
+          <div>
+            <div class="label">Current caffeine</div>
+            <span class="value" id="current-mg">0</span>
+            <span class="unit">mg</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Constants ---
+    const HALF_LIFE_HOURS = 5;
+    const SLEEP_SAFE_MG = 50; // Below ~50mg caffeine is unlikely to disrupt sleep
+    const PRESETS = [
+      { name: 'Double-shot Espresso', mg: 150 },
+      { name: 'Cappuccino', mg: 150 },
+      { name: 'Latte', mg: 150 },
+      { name: 'Green Tea', mg: 30 },
+      { name: 'Black Tea', mg: 50 },
+    ];
+    const STORAGE_KEY = 'caffeine-decay-drinks';
+
+    // --- State ---
+    let drinks = loadDrinks();
+
+    // --- DOM refs ---
+    const form = document.getElementById('drink-form');
+    const nameInput = document.getElementById('drink-name');
+    const mgInput = document.getElementById('drink-mg');
+    const timeInput = document.getElementById('drink-time');
+    const drinkLog = document.getElementById('drink-log');
+    const clearAllBtn = document.getElementById('clear-all');
+    const currentMgEl = document.getElementById('current-mg');
+    const presetsEl = document.getElementById('presets');
+
+    // --- Init ---
+    setDefaultTime();
+    renderPresets();
+    renderDrinkLog();
+    const chart = initChart();
+    updateChart();
+    setInterval(updateChart, 60000);
+
+    // --- Presets ---
+    function renderPresets() {
+      presetsEl.innerHTML = '';
+      PRESETS.forEach((preset, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'preset-btn';
+        btn.textContent = preset.name;
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          nameInput.value = preset.name;
+          mgInput.value = preset.mg;
+        });
+        presetsEl.appendChild(btn);
+      });
+    }
+
+    // --- Time helpers ---
+    function setDefaultTime() {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      timeInput.value = `${hh}:${mm}`;
+    }
+
+    function timeFromInput() {
+      const [hour, minute] = timeInput.value.split(':').map(Number);
+      const d = new Date();
+      d.setHours(hour, minute, 0, 0);
+      return d;
+    }
+
+    function formatTime(date) {
+      let h = date.getHours();
+      const m = date.getMinutes();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    function formatHourLabel(hourDecimal) {
+      const totalMinutes = Math.round(hourDecimal * 60);
+      let h = Math.floor(totalMinutes / 60) % 24;
+      const m = totalMinutes % 60;
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      if (m === 0) return `${h} ${ampm}`;
+      return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
+    }
+
+    // --- Caffeine math ---
+    function caffeineAtTime(drinks, targetTime) {
+      let total = 0;
+      for (const drink of drinks) {
+        const elapsed = (targetTime - new Date(drink.time)) / (1000 * 60 * 60);
+        if (elapsed < 0) continue;
+        total += drink.mg * Math.pow(0.5, elapsed / HALF_LIFE_HOURS);
+      }
+      return total;
+    }
+
+    function generateChartData() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const step = 0.25; // 15-min intervals
+      const labels = [];
+      const data = [];
+
+      for (let h = 0; h <= 24; h += step) {
+        const t = new Date(today.getTime() + h * 3600000);
+        labels.push(h);
+        data.push(Math.max(0, caffeineAtTime(drinks, t)));
+      }
+      return { labels, data };
+    }
+
+    // --- Chart ---
+    function nowHourDecimal() {
+      const now = new Date();
+      return now.getHours() + now.getMinutes() / 60;
+    }
+
+    function drinkAnnotations() {
+      const annotations = {};
+      drinks.forEach((drink, i) => {
+        const d = new Date(drink.time);
+        const h = d.getHours() + d.getMinutes() / 60;
+        annotations[`drink${i}`] = {
+          type: 'line',
+          xMin: h,
+          xMax: h,
+          borderColor: 'rgba(217, 119, 87, 0.4)',
+          borderWidth: 1,
+          borderDash: [3, 3],
+          label: {
+            display: true,
+            content: drink.name,
+            position: 'start',
+            font: { size: 10, family: 'system-ui, sans-serif' },
+            color: 'rgba(217, 119, 87, 0.7)',
+            backgroundColor: 'transparent',
+          }
+        };
+      });
+      return annotations;
+    }
+
+    function initChart() {
+      const ctx = document.getElementById('chart').getContext('2d');
+      return new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            data: [],
+            borderColor: '#d97757',
+            backgroundColor: 'rgba(217, 119, 87, 0.08)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: { duration: 400 },
+          interaction: {
+            intersect: false,
+            mode: 'index',
+          },
+          scales: {
+            x: {
+              type: 'linear',
+              min: 0,
+              max: 24,
+              grid: { display: false },
+              ticks: {
+                stepSize: 3,
+                font: { family: 'system-ui, sans-serif', size: 11 },
+                color: '#30302e',
+                callback: v => formatHourLabel(v),
+              },
+              title: { display: false },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(0, 0, 0, 0.05)' },
+              ticks: {
+                font: { family: 'system-ui, sans-serif', size: 11 },
+                color: '#30302e',
+                callback: v => v + ' mg',
+              },
+              title: { display: false },
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#141413',
+              titleFont: { family: 'system-ui, sans-serif', size: 12 },
+              bodyFont: { family: 'system-ui, sans-serif', size: 12 },
+              cornerRadius: 4,
+              callbacks: {
+                title: (items) => formatHourLabel(items[0].parsed.x),
+                label: (ctx) => Math.round(ctx.parsed.y) + ' mg caffeine',
+              }
+            },
+            annotation: {
+              annotations: {
+                nowLine: {
+                  type: 'line',
+                  xMin: nowHourDecimal(),
+                  xMax: nowHourDecimal(),
+                  borderColor: 'rgba(20, 20, 19, 0.3)',
+                  borderWidth: 1,
+                  borderDash: [5, 3],
+                  label: {
+                    display: true,
+                    content: 'Now',
+                    position: 'end',
+                    font: { size: 10, family: 'system-ui, sans-serif', weight: '500' },
+                    color: '#30302e',
+                    backgroundColor: 'transparent',
+                  }
+                },
+                sleepSafe: {
+                  type: 'line',
+                  yMin: SLEEP_SAFE_MG,
+                  yMax: SLEEP_SAFE_MG,
+                  borderColor: 'rgba(20, 20, 19, 0.15)',
+                  borderWidth: 1,
+                  borderDash: [4, 4],
+                  label: {
+                    display: true,
+                    content: 'Sleep-safe (~50 mg)',
+                    position: 'end',
+                    font: { size: 10, family: 'system-ui, sans-serif' },
+                    color: 'rgba(20, 20, 19, 0.35)',
+                    backgroundColor: 'transparent',
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function updateChart() {
+      const { labels, data } = generateChartData();
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = data;
+
+      // Update "now" line
+      const now = nowHourDecimal();
+      chart.options.plugins.annotation.annotations = {
+        nowLine: {
+          type: 'line',
+          xMin: now,
+          xMax: now,
+          borderColor: 'rgba(20, 20, 19, 0.3)',
+          borderWidth: 1,
+          borderDash: [5, 3],
+          label: {
+            display: true,
+            content: 'Now',
+            position: 'end',
+            font: { size: 10, family: 'system-ui, sans-serif', weight: '500' },
+            color: '#30302e',
+            backgroundColor: 'transparent',
+          }
+        },
+        sleepSafe: {
+          type: 'line',
+          yMin: SLEEP_SAFE_MG,
+          yMax: SLEEP_SAFE_MG,
+          borderColor: 'rgba(20, 20, 19, 0.15)',
+          borderWidth: 1,
+          borderDash: [4, 4],
+          label: {
+            display: true,
+            content: 'Sleep-safe (~50 mg)',
+            position: 'end',
+            font: { size: 10, family: 'system-ui, sans-serif' },
+            color: 'rgba(20, 20, 19, 0.35)',
+            backgroundColor: 'transparent',
+          }
+        },
+        ...drinkAnnotations(),
+      };
+
+      chart.update();
+
+      // Update readout
+      const currentCaffeine = caffeineAtTime(drinks, new Date());
+      currentMgEl.textContent = Math.round(currentCaffeine);
+    }
+
+    // --- Form ---
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = nameInput.value.trim();
+      const mg = parseInt(mgInput.value);
+      if (!name || !mg) return;
+
+      const time = timeFromInput();
+      drinks.push({
+        id: crypto.randomUUID(),
+        name,
+        mg,
+        time: time.toISOString(),
+      });
+
+      saveDrinks();
+      renderDrinkLog();
+      updateChart();
+
+      // Reset form
+      nameInput.value = '';
+      mgInput.value = '';
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      setDefaultTime();
+    });
+
+    // --- Drink log ---
+    function renderDrinkLog() {
+      clearAllBtn.style.display = drinks.length > 0 ? 'block' : 'none';
+
+      if (drinks.length === 0) {
+        drinkLog.innerHTML = '<li class="empty-log">No drinks recorded yet</li>';
+        return;
+      }
+
+      // Sort by time
+      const sorted = [...drinks].sort((a, b) => new Date(a.time) - new Date(b.time));
+
+      drinkLog.innerHTML = '';
+      sorted.forEach(drink => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="drink-info">
+            <span class="drink-name">${escapeHtml(drink.name)}</span>
+            <span class="drink-meta">${drink.mg} mg · ${formatTime(new Date(drink.time))}</span>
+          </div>
+          <button class="remove-btn" data-id="${drink.id}">Remove</button>
+        `;
+        drinkLog.appendChild(li);
+      });
+
+      drinkLog.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          drinks = drinks.filter(d => d.id !== btn.dataset.id);
+          saveDrinks();
+          renderDrinkLog();
+          updateChart();
+        });
+      });
+    }
+
+    clearAllBtn.addEventListener('click', () => {
+      drinks = [];
+      saveDrinks();
+      renderDrinkLog();
+      updateChart();
+    });
+
+    // --- Persistence ---
+    function saveDrinks() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(drinks));
+    }
+
+    function loadDrinks() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (!stored) return [];
+        const parsed = JSON.parse(stored);
+        // Filter out drinks from previous days
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return parsed.filter(d => new Date(d.time) >= today);
+      } catch {
+        return [];
+      }
+    }
+
+    // --- Utils ---
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
