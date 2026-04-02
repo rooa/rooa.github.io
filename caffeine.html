@@ -3,23 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Caffeine Decay Tracker</title>
+  <title>Caffeine Decay</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400;700&family=Doto:wght@100..900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
   <style>
+    /* ============================================
+       Tokens
+       ============================================ */
     :root {
-      --bg: #e8e6dc;
-      --text: #141413;
-      --text-secondary: #30302e;
-      --accent: #d97757;
-      --accent-hover: #c4654a;
-      --accent-light: rgba(217, 119, 87, 0.08);
-      --border: rgba(20, 20, 19, 0.12);
-      --radius: 4px;
-      --font-serif: Georgia, 'Times New Roman', serif;
-      --font-sans: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --font-display: "Doto", "Space Mono", monospace;
+      --font-body: "Space Grotesk", "DM Sans", system-ui, sans-serif;
+      --font-mono: "Space Mono", "JetBrains Mono", "SF Mono", monospace;
+
+      --display-xl: 72px;
+      --display-lg: 48px;
+      --heading: 24px;
+      --subheading: 18px;
+      --body: 16px;
+      --body-sm: 14px;
+      --caption: 12px;
+      --label: 11px;
+
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-2xl: 48px;
+      --space-3xl: 64px;
+
+      --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+      /* Light mode */
+      --black: #F5F5F5;
+      --surface: #FFFFFF;
+      --surface-raised: #F0F0F0;
+      --border: #E8E8E8;
+      --border-visible: #CCCCCC;
+      --text-disabled: #999999;
+      --text-secondary: #666666;
+      --text-primary: #1A1A1A;
+      --text-display: #000000;
+      --accent: #D71921;
+      --accent-subtle: rgba(215, 25, 33, 0.1);
+      --warning: #D4A843;
+      --success: #4A9E5C;
     }
 
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --black: #000000;
+        --surface: #111111;
+        --surface-raised: #1A1A1A;
+        --border: #222222;
+        --border-visible: #333333;
+        --text-disabled: #666666;
+        --text-secondary: #999999;
+        --text-primary: #E8E8E8;
+        --text-display: #FFFFFF;
+      }
+    }
+
+    /* ============================================
+       Reset
+       ============================================ */
     *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
@@ -27,41 +77,100 @@
     }
 
     body {
-      font-family: var(--font-sans);
-      background: var(--bg);
-      color: var(--text);
+      font-family: var(--font-body);
+      font-weight: 300;
+      font-size: var(--body);
       line-height: 1.5;
-      min-height: 100vh;
+      background: var(--black);
+      color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
     }
 
+    /* ============================================
+       Layout
+       ============================================ */
     .container {
-      max-width: 1200px;
+      max-width: 1080px;
       margin: 0 auto;
-      padding: clamp(1.5rem, 3vw, 3rem) clamp(1rem, 4vw, 3rem);
+      padding: var(--space-3xl) var(--space-lg);
     }
 
-    header {
-      margin-bottom: clamp(2rem, 4vw, 3rem);
+    @media (max-width: 640px) {
+      .container {
+        padding: var(--space-2xl) var(--space-md);
+      }
     }
 
-    header h1 {
-      font-family: var(--font-serif);
-      font-size: clamp(1.75rem, 1.5rem + 1.5vw, 3rem);
+    /* Page title — tertiary label */
+    .page-title {
+      font-family: var(--font-mono);
+      font-size: var(--label);
       font-weight: 400;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-disabled);
+      margin-bottom: var(--space-3xl);
     }
 
-    header p {
+    .page-title a {
+      color: var(--text-disabled);
+      text-decoration: none;
+      border-bottom: 1px solid var(--border);
+      transition: color 200ms var(--ease);
+    }
+
+    .page-title a:hover {
       color: var(--text-secondary);
-      font-size: clamp(0.9rem, 0.85rem + 0.25vw, 1.05rem);
     }
 
+    /* ============================================
+       Primary layer — Caffeine readout
+       ============================================ */
+    .hero-readout {
+      margin-bottom: var(--space-3xl);
+    }
+
+    .hero-label {
+      font-family: var(--font-mono);
+      font-size: var(--label);
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-sm);
+    }
+
+    .hero-value {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-sm);
+    }
+
+    .hero-value .number {
+      font-family: var(--font-display);
+      font-size: clamp(48px, 10vw, var(--display-xl));
+      font-weight: 400;
+      color: var(--text-display);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-value .unit {
+      font-family: var(--font-mono);
+      font-size: var(--label);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+    }
+
+    /* ============================================
+       Two-column layout
+       ============================================ */
     .layout {
       display: grid;
-      grid-template-columns: 1fr 1.4fr;
-      gap: clamp(1.5rem, 3vw, 3rem);
+      grid-template-columns: 1fr 1.5fr;
+      gap: var(--space-2xl);
       align-items: start;
     }
 
@@ -71,143 +180,150 @@
       }
     }
 
-    /* Left Panel */
+    /* ============================================
+       Left panel — Add drink
+       ============================================ */
     .panel {
-      background: rgba(255, 255, 255, 0.35);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: clamp(1rem, 2vw, 1.5rem);
+      border-radius: 12px;
+      padding: var(--space-lg);
     }
 
-    .panel h2 {
-      font-family: var(--font-serif);
-      font-size: clamp(1.1rem, 1rem + 0.5vw, 1.35rem);
+    .panel-title {
+      font-family: var(--font-mono);
+      font-size: var(--label);
       font-weight: 400;
-      margin-bottom: 1rem;
-    }
-
-    .presets-label {
-      font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: var(--text-secondary);
-      margin-bottom: 0.5rem;
+      margin-bottom: var(--space-lg);
     }
 
+    /* Presets */
     .presets {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 1.25rem;
+      margin-bottom: var(--space-lg);
     }
 
     .preset-btn {
-      font-family: var(--font-sans);
-      font-size: 0.8rem;
-      padding: 5px 10px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: rgba(255, 255, 255, 0.5);
-      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: var(--caption);
+      letter-spacing: 0.02em;
+      padding: 6px 12px;
+      border: 1px solid var(--border-visible);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-secondary);
       cursor: pointer;
-      transition: all 200ms ease;
-      white-space: nowrap;
+      transition: all 200ms var(--ease);
     }
 
     .preset-btn:hover {
-      border-color: var(--accent);
-      color: var(--accent);
+      color: var(--text-primary);
+      border-color: var(--text-primary);
     }
 
     .preset-btn.active {
-      border-color: var(--accent);
-      background: var(--accent-light);
-      color: var(--accent);
+      color: var(--text-display);
+      border-color: var(--text-display);
+      background: var(--surface-raised);
     }
 
+    /* Form */
     .form-group {
-      margin-bottom: 0.85rem;
+      margin-bottom: var(--space-md);
     }
 
     .form-group label {
       display: block;
-      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: var(--label);
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       color: var(--text-secondary);
-      margin-bottom: 0.3rem;
+      margin-bottom: var(--space-xs);
     }
 
     .form-group input,
     .form-group select {
-      font-family: var(--font-sans);
-      font-size: 0.9rem;
-      padding: 7px 10px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: rgba(255, 255, 255, 0.6);
-      color: var(--text);
-      outline: none;
-      transition: border-color 200ms ease;
-    }
-
-    .form-group input:focus,
-    .form-group select:focus {
-      border-color: var(--accent);
-    }
-
-    .form-group input {
       width: 100%;
+      font-family: var(--font-mono);
+      font-size: var(--body-sm);
+      padding: 10px 0;
+      border: none;
+      border-bottom: 1px solid var(--border-visible);
+      border-radius: 0;
+      background: transparent;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 200ms var(--ease);
+    }
+
+    .form-group input:focus {
+      border-bottom-color: var(--text-primary);
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-disabled);
     }
 
     .add-btn {
-      font-family: var(--font-sans);
-      font-size: 0.85rem;
-      font-weight: 500;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
       width: 100%;
-      padding: 9px 16px;
+      padding: 12px 24px;
       border: none;
-      border-radius: var(--radius);
-      background: var(--accent);
-      color: #fff;
+      border-radius: 999px;
+      background: var(--text-display);
+      color: var(--black);
       cursor: pointer;
-      transition: background 200ms ease;
-      margin-top: 0.25rem;
+      transition: opacity 200ms var(--ease);
+      margin-top: var(--space-sm);
     }
 
     .add-btn:hover {
-      background: var(--accent-hover);
+      opacity: 0.85;
     }
 
+    /* Drink log */
     .drink-log {
-      margin-top: 1.25rem;
+      margin-top: var(--space-lg);
     }
 
     .drink-log-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.5rem;
+      margin-bottom: var(--space-md);
     }
 
     .drink-log-header h3 {
-      font-family: var(--font-serif);
-      font-size: 1rem;
+      font-family: var(--font-mono);
+      font-size: var(--label);
       font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
     }
 
     .clear-btn {
-      font-family: var(--font-sans);
-      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      font-size: var(--label);
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      padding: 3px 8px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
+      padding: 4px 12px;
+      border: 1px solid var(--border-visible);
+      border-radius: 999px;
       background: transparent;
       color: var(--text-secondary);
       cursor: pointer;
-      transition: all 200ms ease;
+      transition: all 200ms var(--ease);
     }
 
     .clear-btn:hover {
@@ -223,9 +339,8 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 0;
+      padding: 12px 0;
       border-bottom: 1px solid var(--border);
-      font-size: 0.85rem;
     }
 
     .drink-log li:last-child {
@@ -235,28 +350,34 @@
     .drink-info {
       display: flex;
       flex-direction: column;
-      gap: 1px;
+      gap: 2px;
     }
 
     .drink-name {
-      font-weight: 500;
+      font-family: var(--font-body);
+      font-size: var(--body-sm);
+      font-weight: 400;
+      color: var(--text-primary);
     }
 
     .drink-meta {
-      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: var(--caption);
       color: var(--text-secondary);
     }
 
     .remove-btn {
-      font-family: var(--font-sans);
-      font-size: 0.7rem;
-      padding: 2px 7px;
+      font-family: var(--font-mono);
+      font-size: var(--label);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 999px;
       background: transparent;
-      color: var(--text-secondary);
+      color: var(--text-disabled);
       cursor: pointer;
-      transition: all 200ms ease;
+      transition: all 200ms var(--ease);
     }
 
     .remove-btn:hover {
@@ -265,51 +386,27 @@
     }
 
     .empty-log {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-      font-style: italic;
-      padding: 0.5rem 0;
+      font-family: var(--font-mono);
+      font-size: var(--caption);
+      color: var(--text-disabled);
+      padding: var(--space-sm) 0;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
 
-    /* Right Panel */
+    /* ============================================
+       Right panel — Chart
+       ============================================ */
     .chart-panel {
       position: sticky;
-      top: 1.5rem;
-    }
-
-    .caffeine-readout {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-    }
-
-    .caffeine-readout .value {
-      font-family: var(--font-serif);
-      font-size: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
-      font-weight: 400;
-      letter-spacing: -0.02em;
-      color: var(--accent);
-      line-height: 1;
-    }
-
-    .caffeine-readout .unit {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-    }
-
-    .caffeine-readout .label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-secondary);
+      top: var(--space-lg);
     }
 
     .chart-container {
-      background: rgba(255, 255, 255, 0.35);
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: clamp(0.75rem, 1.5vw, 1.25rem);
+      border-radius: 12px;
+      padding: var(--space-lg);
       height: 420px;
     }
 
@@ -321,23 +418,31 @@
 </head>
 <body>
   <div class="container">
-    <header>
-      <h1>Caffeine Decay</h1>
-      <p>Track how caffeine moves through your system</p>
-    </header>
+    <div class="page-title"><a href="/">Hiroaki Hayashi</a> / Caffeine Decay</div>
+
+    <div class="hero-readout">
+      <div class="hero-label">Current Caffeine</div>
+      <div class="hero-value">
+        <span class="number" id="current-mg">0</span>
+        <span class="unit">mg</span>
+      </div>
+    </div>
 
     <div class="layout">
-      <!-- Left Panel: Drink Input -->
+      <!-- Left: Drink Input -->
       <div class="panel">
-        <h2>Add a drink</h2>
+        <div class="panel-title">Add a drink</div>
 
-        <div class="presets-label">Quick pick</div>
         <div class="presets" id="presets"></div>
 
         <form id="drink-form">
           <div class="form-group">
             <label for="drink-name">Drink</label>
             <input type="text" id="drink-name" placeholder="e.g. Espresso" required>
+          </div>
+          <div class="form-group">
+            <label for="drink-grams">Bean weight (g)</label>
+            <input type="number" id="drink-grams" min="1" max="100" placeholder="15" step="0.1">
           </div>
           <div class="form-group">
             <label for="drink-mg">Caffeine (mg)</label>
@@ -353,21 +458,14 @@
         <div class="drink-log">
           <div class="drink-log-header">
             <h3>Today's drinks</h3>
-            <button class="clear-btn" id="clear-all" style="display:none">Clear all</button>
+            <button class="clear-btn" id="clear-all" style="display:none">Clear</button>
           </div>
           <ul id="drink-log"></ul>
         </div>
       </div>
 
-      <!-- Right Panel: Chart -->
+      <!-- Right: Chart -->
       <div class="chart-panel">
-        <div class="caffeine-readout">
-          <div>
-            <div class="label">Current caffeine</div>
-            <span class="value" id="current-mg">0</span>
-            <span class="unit">mg</span>
-          </div>
-        </div>
         <div class="chart-container">
           <canvas id="chart"></canvas>
         </div>
@@ -378,15 +476,34 @@
   <script>
     // --- Constants ---
     const HALF_LIFE_HOURS = 5;
-    const SLEEP_SAFE_MG = 50; // Below ~50mg caffeine is unlikely to disrupt sleep
+    const SLEEP_SAFE_MG = 50;
+    const CAFFEINE_PER_GRAM = 12; // ~12 mg caffeine per gram of coffee beans (brewed)
     const PRESETS = [
       { name: 'Double-shot Espresso', mg: 150 },
       { name: 'Cappuccino', mg: 150 },
       { name: 'Latte', mg: 150 },
+      { name: 'Pourover', mg: 180, grams: 15 },
       { name: 'Green Tea', mg: 30 },
       { name: 'Black Tea', mg: 50 },
     ];
     const STORAGE_KEY = 'caffeine-decay-drinks';
+
+    // --- Theme-aware chart colors ---
+    function getChartColors() {
+      const style = getComputedStyle(document.documentElement);
+      return {
+        line: style.getPropertyValue('--text-display').trim(),
+        fill: 'transparent',
+        grid: style.getPropertyValue('--border').trim(),
+        tick: style.getPropertyValue('--text-secondary').trim(),
+        annotation: style.getPropertyValue('--text-disabled').trim(),
+        annotationBorder: style.getPropertyValue('--border-visible').trim(),
+        tooltip: style.getPropertyValue('--surface').trim(),
+        tooltipText: style.getPropertyValue('--text-primary').trim(),
+        accent: style.getPropertyValue('--accent').trim(),
+        sleepLine: style.getPropertyValue('--border-visible').trim(),
+      };
+    }
 
     // --- State ---
     let drinks = loadDrinks();
@@ -394,12 +511,21 @@
     // --- DOM refs ---
     const form = document.getElementById('drink-form');
     const nameInput = document.getElementById('drink-name');
+    const gramsInput = document.getElementById('drink-grams');
     const mgInput = document.getElementById('drink-mg');
     const timeInput = document.getElementById('drink-time');
     const drinkLog = document.getElementById('drink-log');
     const clearAllBtn = document.getElementById('clear-all');
     const currentMgEl = document.getElementById('current-mg');
     const presetsEl = document.getElementById('presets');
+
+    // --- Grams → mg auto-calc ---
+    gramsInput.addEventListener('input', () => {
+      const g = parseFloat(gramsInput.value);
+      if (g > 0) {
+        mgInput.value = Math.round(g * CAFFEINE_PER_GRAM);
+      }
+    });
 
     // --- Init ---
     setDefaultTime();
@@ -412,7 +538,7 @@
     // --- Presets ---
     function renderPresets() {
       presetsEl.innerHTML = '';
-      PRESETS.forEach((preset, i) => {
+      PRESETS.forEach((preset) => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'preset-btn';
@@ -422,6 +548,7 @@
           btn.classList.add('active');
           nameInput.value = preset.name;
           mgInput.value = preset.mg;
+          gramsInput.value = preset.grams || '';
         });
         presetsEl.appendChild(btn);
       });
@@ -474,7 +601,7 @@
     function generateChartData() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const step = 0.25; // 15-min intervals
+      const step = 0.25;
       const labels = [];
       const data = [];
 
@@ -493,6 +620,7 @@
     }
 
     function drinkAnnotations() {
+      const colors = getChartColors();
       const annotations = {};
       drinks.forEach((drink, i) => {
         const d = new Date(drink.time);
@@ -501,15 +629,15 @@
           type: 'line',
           xMin: h,
           xMax: h,
-          borderColor: 'rgba(217, 119, 87, 0.4)',
+          borderColor: colors.annotationBorder,
           borderWidth: 1,
           borderDash: [3, 3],
           label: {
             display: true,
             content: drink.name,
             position: 'start',
-            font: { size: 10, family: 'system-ui, sans-serif' },
-            color: 'rgba(217, 119, 87, 0.7)',
+            font: { size: 10, family: '"Space Mono", monospace' },
+            color: colors.annotation,
             backgroundColor: 'transparent',
           }
         };
@@ -519,24 +647,25 @@
 
     function initChart() {
       const ctx = document.getElementById('chart').getContext('2d');
+      const colors = getChartColors();
       return new Chart(ctx, {
         type: 'line',
         data: {
           labels: [],
           datasets: [{
             data: [],
-            borderColor: '#d97757',
-            backgroundColor: 'rgba(217, 119, 87, 0.08)',
-            fill: true,
-            tension: 0.4,
+            borderColor: colors.line,
+            backgroundColor: 'transparent',
+            fill: false,
+            tension: 0,
             pointRadius: 0,
-            borderWidth: 2,
+            borderWidth: 1.5,
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          animation: { duration: 400 },
+          animation: { duration: 300, easing: 'easeOutQuart' },
           interaction: {
             intersect: false,
             mode: 'index',
@@ -547,35 +676,41 @@
               min: 0,
               max: 24,
               grid: { display: false },
+              border: { color: colors.grid },
               ticks: {
                 stepSize: 3,
-                font: { family: 'system-ui, sans-serif', size: 11 },
-                color: '#30302e',
+                font: { family: '"Space Mono", monospace', size: 10 },
+                color: colors.tick,
                 callback: v => formatHourLabel(v),
               },
-              title: { display: false },
             },
             y: {
               beginAtZero: true,
-              grid: { color: 'rgba(0, 0, 0, 0.05)' },
+              grid: { color: colors.grid, drawTicks: false },
+              border: { display: false },
               ticks: {
-                font: { family: 'system-ui, sans-serif', size: 11 },
-                color: '#30302e',
+                font: { family: '"Space Mono", monospace', size: 10 },
+                color: colors.tick,
+                padding: 8,
                 callback: v => v + ' mg',
               },
-              title: { display: false },
             }
           },
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#141413',
-              titleFont: { family: 'system-ui, sans-serif', size: 12 },
-              bodyFont: { family: 'system-ui, sans-serif', size: 12 },
+              backgroundColor: colors.tooltip,
+              titleColor: colors.tooltipText,
+              bodyColor: colors.tooltipText,
+              borderColor: colors.grid,
+              borderWidth: 1,
+              titleFont: { family: '"Space Mono", monospace', size: 11 },
+              bodyFont: { family: '"Space Mono", monospace', size: 11 },
               cornerRadius: 4,
+              padding: 10,
               callbacks: {
                 title: (items) => formatHourLabel(items[0].parsed.x),
-                label: (ctx) => Math.round(ctx.parsed.y) + ' mg caffeine',
+                label: (ctx) => Math.round(ctx.parsed.y) + ' mg',
               }
             },
             annotation: {
@@ -584,15 +719,15 @@
                   type: 'line',
                   xMin: nowHourDecimal(),
                   xMax: nowHourDecimal(),
-                  borderColor: 'rgba(20, 20, 19, 0.3)',
+                  borderColor: colors.annotation,
                   borderWidth: 1,
-                  borderDash: [5, 3],
+                  borderDash: [4, 3],
                   label: {
                     display: true,
-                    content: 'Now',
+                    content: 'NOW',
                     position: 'end',
-                    font: { size: 10, family: 'system-ui, sans-serif', weight: '500' },
-                    color: '#30302e',
+                    font: { size: 10, family: '"Space Mono", monospace', weight: '400' },
+                    color: colors.tick,
                     backgroundColor: 'transparent',
                   }
                 },
@@ -600,15 +735,15 @@
                   type: 'line',
                   yMin: SLEEP_SAFE_MG,
                   yMax: SLEEP_SAFE_MG,
-                  borderColor: 'rgba(20, 20, 19, 0.15)',
+                  borderColor: colors.sleepLine,
                   borderWidth: 1,
                   borderDash: [4, 4],
                   label: {
                     display: true,
-                    content: 'Sleep-safe (~50 mg)',
+                    content: 'SLEEP-SAFE 50 MG',
                     position: 'end',
-                    font: { size: 10, family: 'system-ui, sans-serif' },
-                    color: 'rgba(20, 20, 19, 0.35)',
+                    font: { size: 10, family: '"Space Mono", monospace' },
+                    color: colors.annotation,
                     backgroundColor: 'transparent',
                   }
                 }
@@ -621,25 +756,26 @@
 
     function updateChart() {
       const { labels, data } = generateChartData();
+      const colors = getChartColors();
       chart.data.labels = labels;
       chart.data.datasets[0].data = data;
+      chart.data.datasets[0].borderColor = colors.line;
 
-      // Update "now" line
       const now = nowHourDecimal();
       chart.options.plugins.annotation.annotations = {
         nowLine: {
           type: 'line',
           xMin: now,
           xMax: now,
-          borderColor: 'rgba(20, 20, 19, 0.3)',
+          borderColor: colors.annotation,
           borderWidth: 1,
-          borderDash: [5, 3],
+          borderDash: [4, 3],
           label: {
             display: true,
-            content: 'Now',
+            content: 'NOW',
             position: 'end',
-            font: { size: 10, family: 'system-ui, sans-serif', weight: '500' },
-            color: '#30302e',
+            font: { size: 10, family: '"Space Mono", monospace', weight: '400' },
+            color: colors.tick,
             backgroundColor: 'transparent',
           }
         },
@@ -647,15 +783,15 @@
           type: 'line',
           yMin: SLEEP_SAFE_MG,
           yMax: SLEEP_SAFE_MG,
-          borderColor: 'rgba(20, 20, 19, 0.15)',
+          borderColor: colors.sleepLine,
           borderWidth: 1,
           borderDash: [4, 4],
           label: {
             display: true,
-            content: 'Sleep-safe (~50 mg)',
+            content: 'SLEEP-SAFE 50 MG',
             position: 'end',
-            font: { size: 10, family: 'system-ui, sans-serif' },
-            color: 'rgba(20, 20, 19, 0.35)',
+            font: { size: 10, family: '"Space Mono", monospace' },
+            color: colors.annotation,
             backgroundColor: 'transparent',
           }
         },
@@ -664,7 +800,6 @@
 
       chart.update();
 
-      // Update readout
       const currentCaffeine = caffeineAtTime(drinks, new Date());
       currentMgEl.textContent = Math.round(currentCaffeine);
     }
@@ -688,8 +823,8 @@
       renderDrinkLog();
       updateChart();
 
-      // Reset form
       nameInput.value = '';
+      gramsInput.value = '';
       mgInput.value = '';
       document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
       setDefaultTime();
@@ -700,11 +835,10 @@
       clearAllBtn.style.display = drinks.length > 0 ? 'block' : 'none';
 
       if (drinks.length === 0) {
-        drinkLog.innerHTML = '<li class="empty-log">No drinks recorded yet</li>';
+        drinkLog.innerHTML = '<li class="empty-log">[No drinks recorded]</li>';
         return;
       }
 
-      // Sort by time
       const sorted = [...drinks].sort((a, b) => new Date(a.time) - new Date(b.time));
 
       drinkLog.innerHTML = '';
@@ -747,7 +881,6 @@
         const stored = localStorage.getItem(STORAGE_KEY);
         if (!stored) return [];
         const parsed = JSON.parse(stored);
-        // Filter out drinks from previous days
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         return parsed.filter(d => new Date(d.time) >= today);

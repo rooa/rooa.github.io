@@ -1,6 +1,75 @@
-* {
-  font-family: "Helvetica", sans-serif;
-  font-weight: 200;
+/* ============================================
+   Nothing-Inspired Design System
+   Fonts: Doto (display), Space Grotesk (body), Space Mono (labels/data)
+   ============================================ */
+
+:root {
+  /* Typography */
+  --font-display: "Doto", "Space Mono", monospace;
+  --font-body: "Space Grotesk", "DM Sans", system-ui, sans-serif;
+  --font-mono: "Space Mono", "JetBrains Mono", "SF Mono", monospace;
+
+  /* Type scale */
+  --display-xl: 72px;
+  --display-lg: 48px;
+  --display-md: 36px;
+  --heading: 24px;
+  --subheading: 18px;
+  --body: 16px;
+  --body-sm: 14px;
+  --caption: 12px;
+  --label: 11px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --space-4xl: 96px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+  /* Light mode (default) */
+  --black: #F5F5F5;
+  --surface: #FFFFFF;
+  --surface-raised: #F0F0F0;
+  --border: #E8E8E8;
+  --border-visible: #CCCCCC;
+  --text-disabled: #999999;
+  --text-secondary: #666666;
+  --text-primary: #1A1A1A;
+  --text-display: #000000;
+  --accent: #D71921;
+  --interactive: #007AFF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --black: #000000;
+    --surface: #111111;
+    --surface-raised: #1A1A1A;
+    --border: #222222;
+    --border-visible: #333333;
+    --text-disabled: #666666;
+    --text-secondary: #999999;
+    --text-primary: #E8E8E8;
+    --text-display: #FFFFFF;
+    --interactive: #5B9BF6;
+  }
+}
+
+/* ============================================
+   Base reset
+   ============================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 html {
@@ -8,255 +77,209 @@ html {
 }
 
 body {
-  font-family: "Helvetica Neue Light", sans-serif;
-  background-color: #f1f1f1;
-  color: rgba(0, 0, 0, 0.7);
-  line-height: 1.6;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-h1 {
-  color: #000;
-  margin-top: 0px;
-  font-size: 40px;
-  font-weight: 100;
-  letter-spacing: -0.5px;
-}
-
-h2 {
-  color: #000;
+  font-family: var(--font-body);
   font-weight: 300;
-  margin-top: 35px;
-  margin-bottom: 15px;
+  font-size: var(--body);
+  line-height: 1.5;
+  background: var(--black);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 a {
-  color: #4183c4;
+  color: var(--text-primary);
   text-decoration: none;
-  transition: color 0.2s ease, text-decoration 0.2s ease;
+  border-bottom: 1px solid var(--border-visible);
+  transition: border-color 200ms var(--ease), color 200ms var(--ease);
 }
 
 a:hover {
-  text-decoration: underline;
-  color: #2e6da4;
-}
-
-.wrapper {
-  text-align: center;
-  animation: fadeIn 0.6s ease-in;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.content {
-  text-align: left;
-  margin-top: 20px;
-  overflow-wrap: break-word;
-  padding: 40px 40px 20px 40px;
-  max-width: 700px;
-  height: 100%;
-  display: block;
-  overflow: auto;
-  margin-left: auto;
-  margin-right: auto;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-p {
-  font-size: 18px;
-  margin: 0.8em 0;
+  color: var(--text-display);
+  border-bottom-color: var(--text-display);
 }
 
 ul {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+  list-style: none;
 }
 
-li {
-  margin: 10px 0;
-  line-height: 1.7;
+/* ============================================
+   Layout
+   ============================================ */
+
+.wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-3xl) var(--space-lg);
 }
 
-header {
-  margin-bottom: 30px;
+@media (max-width: 640px) {
+  .wrapper {
+    padding: var(--space-2xl) var(--space-md);
+  }
 }
 
-header p {
-  color: #000;
-  font-size: 18px;
-  margin-top: 0;
+/* ============================================
+   Primary layer — Name
+   ============================================ */
+
+h1 {
+  font-family: var(--font-display);
+  font-size: clamp(40px, 8vw, var(--display-lg));
+  font-weight: 400;
+  color: var(--text-display);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-bottom: var(--space-lg);
 }
 
-.main-content {
-  position: relative;
-  float: left;
-  padding-right: 0;
-  margin-right: 0;
-  margin-left: 0;
-}
-
-.bibitem {
-  margin-bottom: 22px;
-  padding-left: 0;
-  position: relative;
-}
-
-.bibitem::before {
-  content: "•";
-  color: #4183c4;
-  font-weight: bold;
-  display: inline-block;
-  width: 1em;
-  margin-left: -1em;
-  position: absolute;
-}
-
-.bibitem a {
-  font-weight: 300;
-}
-
-.footnote {
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  text-align: right;
-  font-size: 70%;
-  color: rgba(0, 0, 0, 0.5);
-}
+/* ============================================
+   Navigation — Tertiary layer
+   ============================================ */
 
 header nav {
-  font-size: 95%;
-  padding: 0;
-  margin: 0;
+  margin-bottom: var(--space-2xl);
 }
 
 header nav ul {
-  padding: 0;
-  margin: 0;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-md);
 }
 
 header nav li {
-  display: inline-block;
-  margin-right: 10px;
-  vertical-align: middle;
+  font-family: var(--font-mono);
+  font-size: var(--caption);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
 }
 
-header nav li:not(:last-child)::after {
-  content: "·";
-  margin-left: 12px;
-  color: rgba(0, 0, 0, 0.3);
+header nav li a {
+  color: var(--text-secondary);
+  border-bottom-color: var(--border);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  .content {
-    padding: 25px 20px;
-    margin-top: 10px;
-    box-shadow: none;
-  }
+header nav li a:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+}
 
+/* ============================================
+   Secondary layer — Bio
+   ============================================ */
+
+.bio {
+  font-size: var(--subheading);
+  font-weight: 300;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: var(--space-2xl);
+}
+
+/* ============================================
+   Section headings
+   ============================================ */
+
+h2 {
+  font-family: var(--font-mono);
+  font-size: var(--label);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+/* ============================================
+   Interests list
+   ============================================ */
+
+.interests {
+  margin-bottom: var(--space-2xl);
+}
+
+.interests li {
+  font-size: var(--body-sm);
+  color: var(--text-primary);
+  padding: var(--space-xs) 0;
+}
+
+/* ============================================
+   Publications
+   ============================================ */
+
+.publications {
+  margin-bottom: var(--space-2xl);
+}
+
+.bibitem {
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.bibitem:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.bibitem a {
+  font-weight: 400;
+  color: var(--text-display);
+  border-bottom-color: var(--border-visible);
+}
+
+.bibitem a:hover {
+  border-bottom-color: var(--text-display);
+}
+
+.bibitem br + * {
+  color: var(--text-secondary);
+}
+
+.bibitem .authors {
+  display: block;
+  font-size: var(--body-sm);
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+  line-height: 1.5;
+}
+
+/* ============================================
+   Footnote
+   ============================================ */
+
+.footnote {
+  font-family: var(--font-mono);
+  font-size: var(--caption);
+  letter-spacing: 0.04em;
+  color: var(--text-disabled);
+  margin-top: var(--space-3xl);
+}
+
+.footnote a {
+  color: var(--text-disabled);
+  border-bottom-color: var(--border);
+}
+
+.footnote a:hover {
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   Mobile
+   ============================================ */
+
+@media (max-width: 480px) {
   h1 {
-    font-size: 32px;
-  }
-
-  h2 {
-    font-size: 22px;
-    margin-top: 28px;
-  }
-
-  p {
-    font-size: 16px;
-  }
-
-  header nav {
-    font-size: 90%;
+    font-size: 36px;
   }
 
   header nav ul {
-    gap: 6px;
+    gap: var(--space-sm) var(--space-md);
   }
 
-  header nav li {
-    margin-right: 8px;
-  }
-
-  header nav li:not(:last-child)::after {
-    margin-left: 10px;
-  }
-
-  .bibitem {
-    font-size: 15px;
-    margin-bottom: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .content {
-    padding: 20px 15px;
-  }
-
-  h1 {
-    font-size: 28px;
-  }
-
-  header nav li {
-    margin-right: 6px;
-  }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #1a1a1a;
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  .content {
-    background-color: #2d2d2d;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-  }
-
-  h1, h2 {
-    color: #fff;
-  }
-
-  header p {
-    color: #fff;
-  }
-
-  a {
-    color: #6ba3e0;
-  }
-
-  a:hover {
-    color: #8fc0f0;
-  }
-
-  .bibitem::before {
-    color: #6ba3e0;
-  }
-
-  .footnote {
-    border-top-color: rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.5);
-  }
-
-  header nav li:not(:last-child)::after {
-    color: rgba(255, 255, 255, 0.4);
+  .bio {
+    font-size: var(--body);
   }
 }
