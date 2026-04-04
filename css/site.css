@@ -215,8 +215,15 @@ h2 {
 }
 
 .bibitem {
-  padding: var(--space-md) 0;
+  padding: var(--space-md) var(--space-sm);
+  margin: 0 calc(-1 * var(--space-sm));
   border-bottom: 1px solid var(--border);
+  border-radius: 4px;
+  transition: background-color 200ms var(--ease);
+}
+
+.bibitem:hover {
+  background-color: var(--surface-raised);
 }
 
 .bibitem:first-child {
@@ -245,6 +252,11 @@ h2 {
   line-height: 1.5;
 }
 
+.bibitem .authors .me {
+  color: var(--accent);
+  font-weight: 400;
+}
+
 /* ============================================
    Footnote
    ============================================ */
@@ -265,6 +277,30 @@ h2 {
 .footnote a:hover {
   color: var(--text-secondary);
 }
+
+/* ============================================
+   Page-load animations
+   ============================================ */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+h1                { animation: fadeInUp 600ms var(--ease) both; }
+header            { animation: fadeInUp 600ms var(--ease) 80ms both; }
+.bio              { animation: fadeInUp 600ms var(--ease) 160ms both; }
+.interests,
+h2:nth-of-type(1) { animation: fadeInUp 600ms var(--ease) 240ms both; }
+.publications,
+h2:nth-of-type(2) { animation: fadeInUp 600ms var(--ease) 320ms both; }
+.footnote         { animation: fadeInUp 600ms var(--ease) 400ms both; }
 
 /* ============================================
    Mobile
