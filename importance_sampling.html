@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importance Sampling — Convergent Illumination</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --anthropic-dark: #141413;
+            --anthropic-light: #faf9f5;
+            --anthropic-mid-gray: #b0aea5;
+            --anthropic-light-gray: #e8e6dc;
+            --anthropic-orange: #d97757;
+            --anthropic-blue: #6a9bcc;
+            --anthropic-green: #788c5d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            min-height: 100vh;
+            color: var(--anthropic-dark);
+        }
+
+        .page-wrapper {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+        }
+
+        .sidebar h1 {
+            font-family: 'Lora', serif;
+            font-size: 22px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 8px;
+        }
+
+        .sidebar .subtitle {
+            color: var(--anthropic-mid-gray);
+            font-size: 13px;
+            margin-bottom: 28px;
+            line-height: 1.4;
+        }
+
+        .control-section { margin-bottom: 28px; }
+
+        .control-section h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--anthropic-dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-section h3::before {
+            content: '•';
+            color: var(--anthropic-orange);
+            font-weight: bold;
+        }
+
+        .seed-input {
+            width: 100%;
+            background: var(--anthropic-light);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin-bottom: 10px;
+            border: 1px solid var(--anthropic-light-gray);
+            text-align: center;
+        }
+
+        .seed-input:focus {
+            outline: none;
+            border-color: var(--anthropic-orange);
+            box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.1);
+            background: white;
+        }
+
+        .seed-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .regen-button { margin-bottom: 0; }
+
+        .control-group { margin-bottom: 16px; }
+
+        .control-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 6px;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container input[type="range"] {
+            flex: 1;
+            height: 4px;
+            background: var(--anthropic-light-gray);
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .slider-container input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            background: #c86641;
+        }
+
+        .slider-container input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--anthropic-orange);
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+        }
+
+        .value-display {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--anthropic-mid-gray);
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .button {
+            background: var(--anthropic-orange);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .button:hover { background: #c86641; transform: translateY(-1px); }
+        .button:active { transform: translateY(0); }
+        .button.secondary { background: var(--anthropic-blue); }
+        .button.secondary:hover { background: #5a8bb8; }
+        .button.tertiary { background: var(--anthropic-green); }
+        .button.tertiary:hover { background: #6b7b52; }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .button-row .button { flex: 1; }
+
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            min-width: 0;
+        }
+
+        #canvas-container {
+            width: 100%;
+            max-width: 1100px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(20, 20, 19, 0.1);
+            background: white;
+        }
+
+        #canvas-container canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--anthropic-mid-gray);
+            padding: 100px;
+        }
+
+        .info-box {
+            background: var(--anthropic-light);
+            border-radius: 8px;
+            padding: 10px 12px;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .prose {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 32px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(20, 20, 19, 0.1);
+            margin-bottom: 0;
+        }
+
+        .prose h2 {
+            font-family: 'Lora', serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--anthropic-dark);
+            margin-bottom: 10px;
+            margin-top: 28px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prose h2::before {
+            content: '•';
+            color: var(--anthropic-orange);
+            font-weight: bold;
+        }
+
+        .prose h2:first-child { margin-top: 0; }
+
+        .prose p {
+            font-size: 13.5px;
+            line-height: 1.75;
+            color: #4a4a46;
+            margin-bottom: 10px;
+        }
+
+        .prose p:last-child { margin-bottom: 0; }
+
+        .prose strong {
+            color: var(--anthropic-dark);
+            font-weight: 600;
+        }
+
+        .prose code {
+            font-family: 'Courier New', monospace;
+            font-size: 12.5px;
+            background: var(--anthropic-light);
+            padding: 1px 5px;
+            border-radius: 3px;
+            color: var(--anthropic-dark);
+        }
+
+        @media (max-width: 600px) {
+            .page-wrapper { padding: 12px; }
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; position: static; max-height: none; }
+            .prose { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+    <div class="container">
+        <div class="sidebar">
+            <h1>Importance Sampling</h1>
+            <div class="subtitle">Visualizing how intelligent sample allocation reduces variance. Left: uniform sampling. Right: importance sampling with adjustable proposal.</div>
+
+            <!-- Seed Section -->
+            <div class="control-section">
+                <h3>Seed</h3>
+                <input type="number" id="seed-input" class="seed-input" value="42" onchange="updateSeed()">
+                <div class="seed-controls">
+                    <button class="button secondary" onclick="previousSeed()">← Prev</button>
+                    <button class="button secondary" onclick="nextSeed()">Next →</button>
+                </div>
+                <button class="button tertiary regen-button" onclick="randomSeedAndUpdate()">↻ Random</button>
+            </div>
+
+            <!-- Parameters Section -->
+            <div class="control-section">
+                <h3>Parameters</h3>
+
+                <div class="control-group">
+                    <label>Proposal Mean (μ<sub>q</sub>)</label>
+                    <div class="slider-container">
+                        <input type="range" id="proposalMean" min="-2" max="4" step="0.1" value="1.5" oninput="updateParam('proposalMean', this.value)">
+                        <span class="value-display" id="proposalMean-value">1.50</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Proposal Std Dev (σ<sub>q</sub>)</label>
+                    <div class="slider-container">
+                        <input type="range" id="proposalStd" min="0.3" max="3.0" step="0.1" value="1.0" oninput="updateParam('proposalStd', this.value)">
+                        <span class="value-display" id="proposalStd-value">1.00</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Samples per Frame</label>
+                    <div class="slider-container">
+                        <input type="range" id="samplesPerFrame" min="1" max="20" step="1" value="5" oninput="updateParam('samplesPerFrame', this.value)">
+                        <span class="value-display" id="samplesPerFrame-value">5</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Target Function</label>
+                    <div class="slider-container">
+                        <select id="targetFn" onchange="updateParam('targetFn', this.value)" style="flex:1; padding:6px; border-radius:6px; border:1px solid var(--anthropic-light-gray); font-family:'Poppins',sans-serif; font-size:13px;">
+                            <option value="bimodal">Bimodal Gaussian</option>
+                            <option value="skewed">Skewed Peak</option>
+                            <option value="sharp">Sharp Spike</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <strong>Goal:</strong> Estimate ∫ f(x) dx.<br>
+                    Left panel samples x ~ Uniform. Right panel samples x ~ q(x) with weights w = f(x)/q(x).<br>
+                    Adjust μ<sub>q</sub> to align the proposal with the target's mass.
+                </div>
+            </div>
+
+            <!-- Actions Section -->
+            <div class="control-section">
+                <h3>Actions</h3>
+                <div class="button-row">
+                    <button class="button" onclick="resetParameters()">Reset</button>
+                </div>
+                <div style="height:8px"></div>
+                <div class="button-row">
+                    <button class="button secondary" onclick="exportImage()">Download PNG</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <div id="canvas-container">
+                <div class="loading">Initializing importance sampling…</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="prose">
+                <h2>What is importance sampling?</h2>
+                <p>Importance sampling is a variance reduction technique for Monte Carlo estimation. The core problem it solves: you want to estimate an expectation or integral — say <code>E_p[f(x)] = ∫ f(x)p(x)dx</code> — but naive sampling from <em>p</em> wastes most of its budget drawing samples from regions where <em>f(x)</em> contributes almost nothing to the integral.</p>
+
+                <h2>How it works</h2>
+                <p>Instead of sampling from the original distribution <em>p(x)</em>, you sample from a proposal distribution <em>q(x)</em> that you choose, then correct for the bias by reweighting each sample:</p>
+                <p><code>E_p[f(x)] = ∫ f(x) · (p(x)/q(x)) · q(x) dx = E_q[f(x) · w(x)]</code></p>
+                <p>where <code>w(x) = p(x)/q(x)</code> is the importance weight. You draw x₁, …, xₙ ~ q, compute weights wᵢ = p(xᵢ)/q(xᵢ), and estimate the expectation as <code>(1/n) Σ f(xᵢ)·wᵢ</code>. The weights keep you honest — they undo the distributional mismatch so the estimator is unbiased.</p>
+                <p>If you only know <em>p</em> up to a normalizing constant (common in Bayesian inference), you use <strong>self-normalized importance sampling</strong>: <code>Î = Σ wᵢf(xᵢ) / Σ wᵢ</code>. This introduces a small bias but removes the need to know the normalization.</p>
+
+                <h2>When it's useful</h2>
+                <p>The classic cases are <strong>rare event estimation</strong> (estimating P(X > threshold) when that probability is tiny — uniform sampling almost never hits the tail, but a proposal shifted toward the tail gets you there efficiently), <strong>Bayesian posterior computation</strong> (the posterior is known only up to a constant, and IS gives you weighted samples without MCMC), <strong>off-policy evaluation in RL</strong> (you have data collected under policy π_b but want to evaluate π_e — the importance weight is the likelihood ratio between policies), and integration of functions with concentrated mass where you can roughly identify where the mass lives.</p>
+                <p>The variance reduction can be dramatic. The optimal proposal is <code>q*(x) ∝ |f(x)|·p(x)</code>, which concentrates sampling exactly where the integrand contributes most. In practice you can't achieve this exactly (it requires knowing the answer), but even a rough approximation can cut variance by orders of magnitude compared to naive MC.</p>
+
+                <h2>When it breaks down</h2>
+                <p>The fundamental failure mode is when <em>q</em> has lighter tails than <em>f·p</em>. If there exist regions where <code>f(x)·p(x)</code> is non-negligible but <code>q(x) ≈ 0</code>, some samples will get enormous weights, and the estimator's variance explodes — potentially becoming infinite. This is the <strong>weight degeneracy</strong> problem. In practice you see it as a few samples dominating the entire estimate, with the effective sample size (<code>ESS = (Σwᵢ)² / Σwᵢ²</code>) collapsing toward 1.</p>
+                <p>This gets catastrophically worse in high dimensions. Even if <em>q</em> is a reasonable approximation to <em>p</em> in each marginal, the joint mismatch grows exponentially with dimensionality. A proposal that's slightly off in 100 dimensions will produce weights that are essentially all zero except for one or two samples. This is why vanilla IS is rarely used beyond maybe 10–20 dimensions without serious adaptation.</p>
+                <p>Other limitations: you need to evaluate <code>p(x)/q(x)</code> pointwise, which requires the density of both distributions (at least up to constants if using self-normalized IS). If <em>p</em> is implicit — say, defined only through a simulator with no tractable density — you can't compute the weights. Similarly, if the support of <em>q</em> doesn't cover the support of <em>f·p</em>, the estimator is biased with no recourse.</p>
+                <p>Finally, choosing a good proposal is itself a hard problem. Adaptive IS methods (like population Monte Carlo or adaptive multiple IS) try to iteratively refine <em>q</em>, but they add complexity and their own failure modes. In many modern settings, people reach for MCMC or variational inference instead — IS remains most powerful in low-to-moderate dimensions where you have genuine domain knowledge about where the mass of the integrand lives.</p>
+    </div>
+    </div><!-- /.page-wrapper -->
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // PARAMETERS
+        // ═══════════════════════════════════════════════════════════════
+
+        let params = {
+            seed: 42,
+            proposalMean: 1.5,
+            proposalStd: 1.0,
+            samplesPerFrame: 5,
+            targetFn: 'bimodal'
+        };
+
+        let defaultParams = { ...params };
+
+        // ═══════════════════════════════════════════════════════════════
+        // STATE
+        // ═══════════════════════════════════════════════════════════════
+
+        const XMIN = -4, XMAX = 6;
+        const NUM_BINS = 60;
+        const BIN_W = (XMAX - XMIN) / NUM_BINS;
+
+        let uniformBins, importanceBins;
+        let uniformSamples, importanceSamples;
+        let uniformEstimates, importanceEstimates;
+        let uniformEstimate, importanceEstimate;
+        let trueIntegral;
+        let totalUniformSamples, totalImportanceSamples;
+        let rng;
+
+        // Simple seeded RNG (Mulberry32)
+        function mulberry32(a) {
+            return function () {
+                a |= 0; a = a + 0x6D2B79F5 | 0;
+                var t = Math.imul(a ^ a >>> 15, 1 | a);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            }
+        }
+
+        // Box-Muller for Gaussian sampling
+        function gaussianSample(mean, std) {
+            let u1 = rng(), u2 = rng();
+            if (u1 < 1e-10) u1 = 1e-10;
+            let z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+            return mean + std * z;
+        }
+
+        // Gaussian PDF
+        function gaussianPDF(x, mean, std) {
+            let z = (x - mean) / std;
+            return Math.exp(-0.5 * z * z) / (std * Math.sqrt(2 * Math.PI));
+        }
+
+        // Target functions
+        function targetFunction(x) {
+            if (params.targetFn === 'bimodal') {
+                return 0.6 * gaussianPDF(x, 1.0, 0.5) + 0.4 * gaussianPDF(x, 3.0, 0.7);
+            } else if (params.targetFn === 'skewed') {
+                let g = gaussianPDF(x, 2.0, 0.8);
+                let skew = 1.0 / (1.0 + Math.exp(-3 * (x - 2.0)));
+                return g * (0.5 + skew);
+            } else { // sharp
+                return 0.85 * gaussianPDF(x, 1.5, 0.25) + 0.15 * gaussianPDF(x, -0.5, 1.0);
+            }
+        }
+
+        // Proposal PDF
+        function proposalPDF(x) {
+            return gaussianPDF(x, params.proposalMean, params.proposalStd);
+        }
+
+        // Uniform PDF on [XMIN, XMAX]
+        function uniformPDF() {
+            return 1.0 / (XMAX - XMIN);
+        }
+
+        // Compute true integral numerically
+        function computeTrueIntegral() {
+            let sum = 0;
+            let steps = 2000;
+            let dx = (XMAX - XMIN) / steps;
+            for (let i = 0; i < steps; i++) {
+                let x = XMIN + (i + 0.5) * dx;
+                sum += targetFunction(x) * dx;
+            }
+            return sum;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // P5.JS
+        // ═══════════════════════════════════════════════════════════════
+
+        let CW, CH;
+        let panelW, panelH;
+        let plotX, plotY, plotW, plotH;
+        let histY, histH;
+
+        function setup() {
+            let containerEl = document.getElementById('canvas-container');
+            let sidebarEl = document.querySelector('.sidebar');
+            CW = containerEl.offsetWidth || 1100;
+            CH = sidebarEl.offsetHeight || 700;
+            let canvas = createCanvas(CW, CH);
+            canvas.parent('canvas-container');
+            textFont('Poppins');
+            document.querySelector('.loading').style.display = 'none';
+
+            panelW = (CW - 60) / 2;
+            panelH = CH - 40;
+
+            initializeSystem();
+        }
+
+        function initializeSystem() {
+            rng = mulberry32(params.seed);
+
+            uniformBins = new Float64Array(NUM_BINS);
+            importanceBins = new Float64Array(NUM_BINS);
+            uniformSamples = [];
+            importanceSamples = [];
+            uniformEstimates = [];
+            importanceEstimates = [];
+            uniformEstimate = 0;
+            importanceEstimate = 0;
+            totalUniformSamples = 0;
+            totalImportanceSamples = 0;
+            trueIntegral = computeTrueIntegral();
+
+            loop();
+        }
+
+        function xToPixel(x, ox) {
+            return ox + ((x - XMIN) / (XMAX - XMIN)) * plotW;
+        }
+
+        function draw() {
+            background(250, 249, 245);
+
+            // Layout
+            let leftX = 20;
+            let rightX = CW / 2 + 10;
+            plotW = panelW - 20;
+            plotH = 120;
+            histH = 160;
+
+            // Add samples each frame
+            for (let i = 0; i < params.samplesPerFrame; i++) {
+                addUniformSample();
+                addImportanceSample();
+            }
+
+            // Draw left panel (Uniform)
+            drawPanel(leftX, 20, panelW, panelH, 'Uniform Sampling', true);
+            // Draw right panel (Importance)
+            drawPanel(rightX, 20, panelW, panelH, 'Importance Sampling', false);
+
+            // Draw center divider
+            stroke(200);
+            strokeWeight(1);
+            line(CW / 2, 30, CW / 2, CH - 20);
+
+            // Stop after enough samples for clarity
+            if (totalUniformSamples > 3000) {
+                noLoop();
+            }
+        }
+
+        function addUniformSample() {
+            let x = XMIN + rng() * (XMAX - XMIN);
+            let fx = targetFunction(x);
+            let val = fx / uniformPDF(); // = fx * (XMAX - XMIN)
+
+            totalUniformSamples++;
+            uniformEstimate += (val - uniformEstimate) / totalUniformSamples;
+
+            let bin = Math.floor((x - XMIN) / BIN_W);
+            if (bin >= 0 && bin < NUM_BINS) {
+                uniformBins[bin]++;
+            }
+
+            uniformSamples.push({ x: x, fx: fx, weight: 1.0, age: 0 });
+            if (uniformSamples.length > 200) uniformSamples.shift();
+
+            if (totalUniformSamples % 5 === 0) {
+                uniformEstimates.push(uniformEstimate);
+            }
+        }
+
+        function addImportanceSample() {
+            let x = gaussianSample(params.proposalMean, params.proposalStd);
+            let fx = targetFunction(x);
+            let qx = proposalPDF(x);
+            let weight = (qx > 1e-10) ? fx / qx : 0;
+
+            totalImportanceSamples++;
+            importanceEstimate += (weight - importanceEstimate) / totalImportanceSamples;
+
+            let bin = Math.floor((x - XMIN) / BIN_W);
+            if (bin >= 0 && bin < NUM_BINS) {
+                importanceBins[bin] += weight;
+            }
+
+            importanceSamples.push({ x: x, fx: fx, weight: weight, age: 0 });
+            if (importanceSamples.length > 200) importanceSamples.shift();
+
+            if (totalImportanceSamples % 5 === 0) {
+                importanceEstimates.push(importanceEstimate);
+            }
+        }
+
+        function drawPanel(ox, oy, pw, ph, title, isUniform) {
+            let mx = ox + 10; // margin x
+            let curY = oy;
+
+            // Title
+            noStroke();
+            fill(20);
+            textSize(14);
+            textStyle(BOLD);
+            textAlign(LEFT, TOP);
+            text(title, mx, curY);
+            curY += 24;
+
+            // Distribute plots equally over the available panel height.
+            // Fixed overhead: title(24) + gap1(16) + gap2(24) + gap3(12) + stats(30) = 106
+            let plotsTotal = ph - 106;
+            let curvePlotH = Math.floor(plotsTotal / 3);
+            let histPlotH  = Math.floor(plotsTotal / 3);
+            let convPlotH  = plotsTotal - curvePlotH - histPlotH;
+
+            // --- Section 1: Target function + distribution curves ---
+            let curvePlotY = curY;
+            let curvePlotW = pw - 20;
+
+            // Axes background
+            fill(252, 251, 248);
+            noStroke();
+            rect(mx, curvePlotY, curvePlotW, curvePlotH, 4);
+
+            // Draw target function f(x)
+            let maxF = 0;
+            for (let px = 0; px < curvePlotW; px++) {
+                let x = XMIN + (px / curvePlotW) * (XMAX - XMIN);
+                let f = targetFunction(x);
+                if (f > maxF) maxF = f;
+            }
+            let maxQ = 0;
+            for (let px = 0; px < curvePlotW; px++) {
+                let x = XMIN + (px / curvePlotW) * (XMAX - XMIN);
+                let q = proposalPDF(x);
+                if (q > maxQ) maxQ = q;
+            }
+            let scaleMax = Math.max(maxF, isUniform ? maxF : maxQ) * 1.15;
+
+            // Fill under f(x)
+            noStroke();
+            fill(217, 119, 87, 30);
+            beginShape();
+            vertex(mx, curvePlotY + curvePlotH);
+            for (let px = 0; px <= curvePlotW; px += 2) {
+                let x = XMIN + (px / curvePlotW) * (XMAX - XMIN);
+                let f = targetFunction(x);
+                let py = curvePlotY + curvePlotH - (f / scaleMax) * (curvePlotH - 8);
+                vertex(mx + px, py);
+            }
+            vertex(mx + curvePlotW, curvePlotY + curvePlotH);
+            endShape(CLOSE);
+
+            // f(x) curve
+            noFill();
+            stroke(217, 119, 87);
+            strokeWeight(2.5);
+            beginShape();
+            for (let px = 0; px <= curvePlotW; px += 2) {
+                let x = XMIN + (px / curvePlotW) * (XMAX - XMIN);
+                let f = targetFunction(x);
+                let py = curvePlotY + curvePlotH - (f / scaleMax) * (curvePlotH - 8);
+                vertex(mx + px, py);
+            }
+            endShape();
+
+            if (!isUniform) {
+                // Proposal q(x) fill
+                noStroke();
+                fill(106, 155, 204, 25);
+                beginShape();
+                vertex(mx, curvePlotY + curvePlotH);
+                for (let px = 0; px <= curvePlotW; px += 2) {
+                    let x = XMIN + (px / curvePlotW) * (XMAX - XMIN);
+                    let q = proposalPDF(x);
+                    let py = curvePlotY + curvePlotH - (q / scaleMax) * (curvePlotH - 8);
+                    vertex(mx + px, py);
+                }
+                vertex(mx + curvePlotW, curvePlotY + curvePlotH);
+                endShape(CLOSE);
+
+                // q(x) curve
+                noFill();
+                stroke(106, 155, 204);
+                strokeWeight(2);
+                beginShape();
+                for (let px = 0; px <= curvePlotW; px += 2) {
+                    let x = XMIN + (px / curvePlotW) * (XMAX - XMIN);
+                    let q = proposalPDF(x);
+                    let py = curvePlotY + curvePlotH - (q / scaleMax) * (curvePlotH - 8);
+                    vertex(mx + px, py);
+                }
+                endShape();
+            } else {
+                // Uniform line p(x) = 1/(XMAX-XMIN)
+                let uPDF = uniformPDF();
+                let uy = curvePlotY + curvePlotH - (uPDF / scaleMax) * (curvePlotH - 8);
+                stroke(140, 140, 130);
+                strokeWeight(1.5);
+                strokeCap(ROUND);
+                let dashLen = 6;
+                for (let px = 0; px < curvePlotW; px += dashLen * 2) {
+                    let x1 = mx + px;
+                    let x2 = Math.min(mx + px + dashLen, mx + curvePlotW);
+                    line(x1, uy, x2, uy);
+                }
+            }
+
+            // Labels
+            noStroke();
+            textSize(10);
+            textStyle(NORMAL);
+            fill(217, 119, 87);
+            textAlign(LEFT, TOP);
+            text('f(x)', mx + 4, curvePlotY + 4);
+            if (!isUniform) {
+                fill(106, 155, 204);
+                text('q(x)', mx + 35, curvePlotY + 4);
+            } else {
+                fill(140, 140, 130);
+                text('p(x) = 1/L', mx + 35, curvePlotY + 4);
+            }
+
+            // X axis
+            stroke(180);
+            strokeWeight(0.5);
+            line(mx, curvePlotY + curvePlotH, mx + curvePlotW, curvePlotY + curvePlotH);
+
+            curY = curvePlotY + curvePlotH + 16;
+
+            // --- Section 2: Histogram ---
+            let histPlotY = curY;
+
+            fill(252, 251, 248);
+            noStroke();
+            rect(mx, histPlotY, curvePlotW, histPlotH, 4);
+
+            let bins = isUniform ? uniformBins : importanceBins;
+            let totalS = isUniform ? totalUniformSamples : totalImportanceSamples;
+
+            // Normalize bins to form density estimate
+            let maxBinDensity = 0;
+            for (let i = 0; i < NUM_BINS; i++) {
+                let density;
+                if (isUniform) {
+                    density = bins[i] / (totalS > 0 ? totalS * BIN_W : 1);
+                } else {
+                    density = bins[i] / (totalS > 0 ? totalS * BIN_W : 1);
+                }
+                if (density > maxBinDensity) maxBinDensity = density;
+            }
+            let histScaleMax = Math.max(maxBinDensity, maxF) * 1.15;
+            if (histScaleMax < 0.01) histScaleMax = 1;
+
+            // Draw histogram bars
+            let barW = curvePlotW / NUM_BINS;
+            for (let i = 0; i < NUM_BINS; i++) {
+                let density;
+                if (isUniform) {
+                    density = bins[i] / (totalS > 0 ? totalS * BIN_W : 1);
+                } else {
+                    density = bins[i] / (totalS > 0 ? totalS * BIN_W : 1);
+                }
+                let barH = (density / histScaleMax) * (histPlotH - 10);
+                let bx = mx + i * barW;
+                let by = histPlotY + histPlotH - barH;
+
+                noStroke();
+                if (isUniform) {
+                    fill(176, 174, 165, 140);
+                } else {
+                    // Color by weight intensity
+                    let intensity = Math.min(density / (maxBinDensity + 0.001), 1.0);
+                    let r = lerp(106, 217, intensity);
+                    let g = lerp(155, 119, intensity);
+                    let b = lerp(204, 87, intensity);
+                    fill(r, g, b, 160);
+                }
+                rect(bx, by, barW - 0.5, barH);
+            }
+
+            // Overlay true f(x) shape on histogram
+            noFill();
+            stroke(217, 119, 87, 120);
+            strokeWeight(1.5);
+            beginShape();
+            for (let px = 0; px <= curvePlotW; px += 2) {
+                let x = XMIN + (px / curvePlotW) * (XMAX - XMIN);
+                let f = targetFunction(x);
+                let py = histPlotY + histPlotH - (f / histScaleMax) * (histPlotH - 10);
+                vertex(mx + px, py);
+            }
+            endShape();
+
+            // Label
+            noStroke();
+            fill(80);
+            textSize(10);
+            textAlign(LEFT, TOP);
+            text('Histogram → density estimate', mx + 4, histPlotY + 4);
+
+            // X axis ticks
+            stroke(180);
+            strokeWeight(0.5);
+            line(mx, histPlotY + histPlotH, mx + curvePlotW, histPlotY + histPlotH);
+            fill(120);
+            noStroke();
+            textSize(9);
+            textAlign(CENTER, TOP);
+            for (let v = XMIN; v <= XMAX; v += 2) {
+                let px = mx + ((v - XMIN) / (XMAX - XMIN)) * curvePlotW;
+                text(v.toFixed(0), px, histPlotY + histPlotH + 2);
+            }
+
+            curY = histPlotY + histPlotH + 24;
+
+            // --- Section 3: Running estimate convergence ---
+            let convPlotY = curY;
+            let estimates = isUniform ? uniformEstimates : importanceEstimates;
+
+            fill(252, 251, 248);
+            noStroke();
+            rect(mx, convPlotY, curvePlotW, convPlotH, 4);
+
+            if (estimates.length > 1) {
+                // Determine y range
+                let eMin = trueIntegral, eMax = trueIntegral;
+                for (let e of estimates) {
+                    if (e < eMin) eMin = e;
+                    if (e > eMax) eMax = e;
+                }
+                let margin = Math.max((eMax - eMin) * 0.2, trueIntegral * 0.15);
+                let yMin = Math.min(eMin, trueIntegral) - margin;
+                let yMax = Math.max(eMax, trueIntegral) + margin;
+                if (yMax - yMin < 0.01) { yMin -= 0.1; yMax += 0.1; }
+
+                // True integral line
+                let trueY = convPlotY + convPlotH - ((trueIntegral - yMin) / (yMax - yMin)) * (convPlotH - 10);
+                stroke(120, 180, 100);
+                strokeWeight(1.5);
+                line(mx, trueY, mx + curvePlotW, trueY);
+
+                // Estimate trace
+                noFill();
+                stroke(isUniform ? 150 : 106, isUniform ? 150 : 155, isUniform ? 145 : 204);
+                strokeWeight(1.5);
+                beginShape();
+                for (let i = 0; i < estimates.length; i++) {
+                    let ex = mx + (i / (estimates.length - 1)) * curvePlotW;
+                    let ey = convPlotY + convPlotH - ((estimates[i] - yMin) / (yMax - yMin)) * (convPlotH - 10);
+                    vertex(ex, ey);
+                }
+                endShape();
+
+                // Current value
+                let lastE = estimates[estimates.length - 1];
+                let lastY = convPlotY + convPlotH - ((lastE - yMin) / (yMax - yMin)) * (convPlotH - 10);
+                fill(isUniform ? color(150, 150, 145) : color(106, 155, 204));
+                noStroke();
+                ellipse(mx + curvePlotW, lastY, 6, 6);
+            }
+
+            // Labels
+            noStroke();
+            textSize(10);
+            textAlign(LEFT, TOP);
+            fill(80);
+            text('∫f(x)dx estimate → n', mx + 4, convPlotY + 4);
+            fill(120, 180, 100);
+            textAlign(RIGHT, TOP);
+            text('true = ' + trueIntegral.toFixed(4), mx + curvePlotW - 4, convPlotY + 4);
+
+            // Stats
+            curY = convPlotY + convPlotH + 12;
+            noStroke();
+            fill(40);
+            textSize(12);
+            textStyle(BOLD);
+            textAlign(LEFT, TOP);
+            let est = isUniform ? uniformEstimate : importanceEstimate;
+            let n = isUniform ? totalUniformSamples : totalImportanceSamples;
+            let errPct = trueIntegral > 0 ? Math.abs(est - trueIntegral) / trueIntegral * 100 : 0;
+            text('Î = ' + est.toFixed(4), mx, curY);
+            textStyle(NORMAL);
+            textSize(10);
+            fill(100);
+            text('n = ' + n + '   |   error: ' + errPct.toFixed(2) + '%', mx, curY + 18);
+
+            // Falling samples visualization
+            let samples = isUniform ? uniformSamples : importanceSamples;
+            for (let s of samples) {
+                s.age++;
+                let sx = mx + ((s.x - XMIN) / (XMAX - XMIN)) * curvePlotW;
+                if (sx < mx || sx > mx + curvePlotW) continue;
+
+                let alpha = Math.max(0, 255 - s.age * 4);
+                if (isUniform) {
+                    fill(176, 174, 165, alpha);
+                    noStroke();
+                    ellipse(sx, curvePlotY + curvePlotH + 8, 3, 3);
+                } else {
+                    let wNorm = Math.min(s.weight / 2.0, 1.0);
+                    let sz = 2 + wNorm * 5;
+                    let r = lerp(106, 255, wNorm);
+                    let g = lerp(155, 80, wNorm);
+                    let b = lerp(204, 50, wNorm);
+                    fill(r, g, b, alpha);
+                    noStroke();
+                    ellipse(sx, curvePlotY + curvePlotH + 8, sz, sz);
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // UI HANDLERS
+        // ═══════════════════════════════════════════════════════════════
+
+        function updateParam(paramName, value) {
+            if (paramName === 'targetFn') {
+                params[paramName] = value;
+            } else {
+                params[paramName] = parseFloat(value);
+            }
+            let el = document.getElementById(paramName + '-value');
+            if (el) {
+                if (paramName === 'samplesPerFrame') {
+                    el.textContent = parseInt(value);
+                } else {
+                    el.textContent = parseFloat(value).toFixed(2);
+                }
+            }
+            initializeSystem();
+        }
+
+        function exportImage() {
+            saveCanvas('importance-sampling-' + params.seed, 'png');
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SEED CONTROLS
+        // ═══════════════════════════════════════════════════════════════
+
+        function updateSeedDisplay() {
+            document.getElementById('seed-input').value = params.seed;
+        }
+
+        function updateSeed() {
+            let input = document.getElementById('seed-input');
+            let newSeed = parseInt(input.value);
+            if (newSeed && newSeed > 0) {
+                params.seed = newSeed;
+                initializeSystem();
+            } else {
+                updateSeedDisplay();
+            }
+        }
+
+        function previousSeed() {
+            params.seed = Math.max(1, params.seed - 1);
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function nextSeed() {
+            params.seed = params.seed + 1;
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function randomSeedAndUpdate() {
+            params.seed = Math.floor(Math.random() * 999999) + 1;
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        function resetParameters() {
+            params = { ...defaultParams };
+            document.getElementById('proposalMean').value = params.proposalMean;
+            document.getElementById('proposalMean-value').textContent = params.proposalMean.toFixed(2);
+            document.getElementById('proposalStd').value = params.proposalStd;
+            document.getElementById('proposalStd-value').textContent = params.proposalStd.toFixed(2);
+            document.getElementById('samplesPerFrame').value = params.samplesPerFrame;
+            document.getElementById('samplesPerFrame-value').textContent = params.samplesPerFrame;
+            document.getElementById('targetFn').value = params.targetFn;
+            updateSeedDisplay();
+            initializeSystem();
+        }
+
+        window.addEventListener('load', function () {
+            updateSeedDisplay();
+        });
+    </script>
+</body>
+</html>
