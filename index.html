@@ -81,5 +81,38 @@
     </div>
   </div>
   <canvas id="brush-cursor" aria-hidden="true"></canvas>
+  <script>
+    // ============================================
+    // Time-aware atmosphere
+    // Subtly shifts light-mode palette by time of day
+    // ============================================
+    (function() {
+      var hour = new Date().getHours();
+      var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (isDark) return; // dark mode is already the tea house
+
+      var html = document.documentElement;
+
+      if (hour >= 6 && hour < 12) {
+        // Morning — warmer, slightly brighter
+        html.style.setProperty('--background', '#FAF6EE');
+        html.style.setProperty('--surface', '#FFFDF9');
+        html.style.setProperty('--text-secondary', '#7F7365');
+      } else if (hour >= 17 && hour < 21) {
+        // Evening — settling into warmth
+        html.style.setProperty('--background', '#EDE7DC');
+        html.style.setProperty('--surface', '#F5F0E7');
+        html.style.setProperty('--surface-raised', '#E3DDD2');
+        html.style.setProperty('--text-secondary', '#8F8375');
+      } else if (hour >= 21 || hour < 6) {
+        // Night — deeper warmth for light-mode users
+        html.style.setProperty('--background', '#E0D8CC');
+        html.style.setProperty('--surface', '#EAE3D8');
+        html.style.setProperty('--surface-raised', '#D8D0C4');
+        html.style.setProperty('--border', '#CFC7BA');
+        html.style.setProperty('--text-secondary', '#958979');
+      }
+      // Afternoon (12–16): canonical palette, no overrides
+    })();
 </body>
 </html>
