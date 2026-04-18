@@ -1,13 +1,13 @@
 /* ============================================
-   Nothing-Inspired Design System
-   Fonts: Doto (display), Space Grotesk (body), Space Mono (labels/data)
+   Structured Warmth — Zen / Wabi Design System
+   Fonts: Zen Maru Gothic (display), Sora (body), Source Code Pro (mono)
    ============================================ */
 
 :root {
   /* Typography */
-  --font-display: "Doto", "Space Mono", monospace;
-  --font-body: "Space Grotesk", "DM Sans", system-ui, sans-serif;
-  --font-mono: "Space Mono", "JetBrains Mono", "SF Mono", monospace;
+  --font-display: "Zen Maru Gothic", "Sora", sans-serif;
+  --font-body: "Sora", "DM Sans", system-ui, sans-serif;
+  --font-mono: "Source Code Pro", "SF Mono", monospace;
 
   /* Type scale */
   --display-xl: 72px;
@@ -33,32 +33,35 @@
   /* Motion */
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 
-  /* Light mode (default) */
-  --black: #F5F5F5;
-  --surface: #FFFFFF;
-  --surface-raised: #F0F0F0;
-  --border: #E8E8E8;
-  --border-visible: #CCCCCC;
-  --text-disabled: #999999;
-  --text-secondary: #666666;
-  --text-primary: #1A1A1A;
-  --text-display: #000000;
-  --accent: #D71921;
-  --interactive: #007AFF;
+  /* Light mode — 日向 (Hinata) */
+  --background: #F5F1EA;
+  --surface: #FDFCF9;
+  --surface-raised: #EDE8DF;
+  --border: #DDD6C9;
+  --border-visible: #C8BFB0;
+  --text-disabled: #A89B8A;
+  --text-secondary: #8A7E70;
+  --text-primary: #2A2520;
+  --text-display: #1C1816;
+  --accent: #B07356;
+  --interactive: #5A7E8A;
+  --success: #7B8F6A;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --black: #000000;
-    --surface: #111111;
-    --surface-raised: #1A1A1A;
-    --border: #222222;
-    --border-visible: #333333;
-    --text-disabled: #666666;
-    --text-secondary: #999999;
-    --text-primary: #E8E8E8;
-    --text-display: #FFFFFF;
-    --interactive: #5B9BF6;
+    --background: #1C1916;
+    --surface: #252119;
+    --surface-raised: #2E2A22;
+    --border: #3A352D;
+    --border-visible: #4D463B;
+    --text-disabled: #5E5548;
+    --text-secondary: #9A8E7E;
+    --text-primary: #DDD4C6;
+    --text-display: #F0EAE0;
+    --accent: #C4845F;
+    --interactive: #7BA0AB;
+    --success: #8FA07A;
   }
 }
 
@@ -81,7 +84,7 @@ body {
   font-weight: 300;
   font-size: var(--body);
   line-height: 1.5;
-  background: var(--black);
+  background: var(--background);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -301,6 +304,45 @@ h2:nth-of-type(1) { animation: fadeInUp 600ms var(--ease) 240ms both; }
 .publications,
 h2:nth-of-type(2) { animation: fadeInUp 600ms var(--ease) 320ms both; }
 .footnote         { animation: fadeInUp 600ms var(--ease) 400ms both; }
+
+/* ============================================
+   Generative elements (canvases)
+   ============================================ */
+
+body {
+  position: relative;
+}
+
+#ink-branch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+#brush-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #brush-cursor {
+    display: none;
+  }
+}
 
 /* ============================================
    Mobile
