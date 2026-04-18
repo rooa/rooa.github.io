@@ -89,6 +89,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  position: relative;
 }
 
 a {
@@ -115,6 +116,8 @@ ul {
   max-width: 640px;
   margin: 0 auto;
   padding: var(--space-3xl) var(--space-lg);
+  position: relative;
+  z-index: 1;
 }
 
 @media (max-width: 640px) {
@@ -309,10 +312,6 @@ h2:nth-of-type(2) { animation: fadeInUp 600ms var(--ease) 320ms both; }
    Generative elements (canvases)
    ============================================ */
 
-body {
-  position: relative;
-}
-
 #ink-branch {
   position: absolute;
   top: 0;
@@ -321,11 +320,6 @@ body {
   height: 100%;
   pointer-events: none;
   z-index: 0;
-}
-
-.wrapper {
-  position: relative;
-  z-index: 1;
 }
 
 #brush-cursor {
@@ -339,8 +333,12 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #brush-cursor {
+  #brush-cursor,
+  #ink-branch {
     display: none;
+  }
+  h1, header, .bio, .interests, h2, .publications, .footnote {
+    animation: none;
   }
 }
 

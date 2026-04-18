@@ -232,6 +232,17 @@
       var points = [];
       var lastX = 0, lastY = 0;
       var animating = false;
+      var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var inkR = isDark ? 180 : 90;
+      var inkG = isDark ? 170 : 80;
+      var inkB = isDark ? 155 : 65;
+
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
+        isDark = e.matches;
+        inkR = isDark ? 180 : 90;
+        inkG = isDark ? 170 : 80;
+        inkB = isDark ? 155 : 65;
+      });
 
       function resizeCanvas() {
         dpr = window.devicePixelRatio || 1;
@@ -270,11 +281,6 @@
       function render() {
         var now = Date.now();
         ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-
-        var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        var inkR = isDark ? 180 : 90;
-        var inkG = isDark ? 170 : 80;
-        var inkB = isDark ? 155 : 65;
 
         // Draw connecting lines between adjacent points
         for (var i = 0; i < points.length; i++) {
