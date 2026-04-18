@@ -12,7 +12,6 @@
   <title>Hiroaki Hayashi</title>
 </head>
 <body>
-  <canvas id="ink-branch" aria-hidden="true"></canvas>
   <div class="wrapper">
     <h1>Hiroaki Hayashi</h1>
 
@@ -113,106 +112,6 @@
         html.style.setProperty('--text-secondary', '#958979');
       }
       // Afternoon (12–16): canonical palette, no overrides
-    })();
-
-    // ============================================
-    // Generative ink branch
-    // Procedural twig from page edge, unique each visit
-    // ============================================
-    (function() {
-      var canvas = document.getElementById('ink-branch');
-      if (!canvas) return;
-      var ctx = canvas.getContext('2d');
-
-      var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var branchRGB = isDark ? '200, 190, 175' : '70, 62, 50';
-      var baseOpacity = isDark ? 0.08 : 0.06;
-
-      function resize() {
-        var dpr = window.devicePixelRatio || 1;
-        var w = document.body.scrollWidth;
-        var h = document.body.scrollHeight;
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      }
-
-      function branch(x, y, angle, width, depth, maxDepth) {
-        if (depth > maxDepth || width < 0.3) return;
-
-        var segLen = 15 + Math.random() * 25;
-        var curve = (Math.random() - 0.5) * 0.4;
-        var steps = 8;
-        var px = x, py = y;
-        var currentAngle = angle;
-
-        for (var i = 0; i < steps; i++) {
-          currentAngle += curve / steps + (Math.random() - 0.5) * 0.05;
-          var nx = px + Math.cos(currentAngle) * (segLen / steps);
-          var ny = py + Math.sin(currentAngle) * (segLen / steps);
-
-          var t = i / steps;
-          var w = width * (1 - t * 0.15);
-          var opacity = baseOpacity - depth * 0.01;
-
-          ctx.beginPath();
-          ctx.moveTo(px, py);
-          ctx.lineTo(nx, ny);
-          ctx.strokeStyle = 'rgba(' + branchRGB + ', ' + Math.max(0.015, opacity) + ')';
-          ctx.lineWidth = Math.max(0.3, w);
-          ctx.lineCap = 'round';
-          ctx.stroke();
-
-          px = nx;
-          py = ny;
-        }
-
-        // Maybe fork
-        if (depth < maxDepth - 1 && Math.random() < 0.65) {
-          var forkAngle = (Math.random() - 0.5) * 0.8;
-          branch(px, py, currentAngle + forkAngle, width * 0.6, depth + 1, maxDepth);
-        }
-        if (Math.random() < 0.45) {
-          var forkAngle2 = (Math.random() - 0.5) * 0.7;
-          branch(px, py, currentAngle - forkAngle2 * 0.5, width * 0.45, depth + 1, maxDepth);
-        }
-
-        // Continue main branch
-        if (depth < maxDepth) {
-          branch(px, py, currentAngle + (Math.random() - 0.5) * 0.3, width * 0.78, depth + 1, maxDepth);
-        }
-      }
-
-      function draw() {
-        resize();
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        var w = document.body.scrollWidth;
-        var h = document.body.scrollHeight;
-        var startX = w + 5;
-        var startY = h * (0.08 + Math.random() * 0.35);
-        var mainAngle = Math.PI + (Math.random() - 0.5) * 0.5;
-        var maxDepth = 3 + Math.floor(Math.random() * 2);
-        var startWidth = 2.5 + Math.random() * 2;
-
-        branch(startX, startY, mainAngle, startWidth, 0, maxDepth);
-      }
-
-      // Draw after fonts load so layout is settled
-      if (document.fonts) {
-        document.fonts.ready.then(draw);
-      } else {
-        window.addEventListener('load', draw);
-      }
-
-      // Redraw on scheme change
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
-        branchRGB = e.matches ? '200, 190, 175' : '70, 62, 50';
-        baseOpacity = e.matches ? 0.08 : 0.06;
-        draw();
-      });
     })();
 
     // ============================================

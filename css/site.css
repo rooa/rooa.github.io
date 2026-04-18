@@ -312,16 +312,6 @@ h2:nth-of-type(2) { animation: fadeInUp 600ms var(--ease) 320ms both; }
    Generative elements (canvases)
    ============================================ */
 
-#ink-branch {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
 #brush-cursor {
   position: fixed;
   top: 0;
@@ -333,8 +323,7 @@ h2:nth-of-type(2) { animation: fadeInUp 600ms var(--ease) 320ms both; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #brush-cursor,
-  #ink-branch {
+  #brush-cursor {
     display: none;
   }
   h1, header, .bio, .interests, h2, .publications, .footnote {
