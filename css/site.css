@@ -138,6 +138,7 @@ h1 {
   letter-spacing: -0.02em;
   line-height: 1.05;
   margin-bottom: var(--space-lg);
+  text-wrap: balance;
 }
 
 /* ============================================
@@ -160,6 +161,7 @@ header nav li {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-secondary);
+  padding: var(--space-xs) 0;
 }
 
 header nav li a {
@@ -182,6 +184,7 @@ header nav li a:hover {
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: var(--space-2xl);
+  text-wrap: pretty;
 }
 
 /* ============================================
@@ -196,6 +199,7 @@ h2 {
   letter-spacing: 0.08em;
   color: var(--text-secondary);
   margin-bottom: var(--space-md);
+  text-wrap: balance;
 }
 
 /* ============================================

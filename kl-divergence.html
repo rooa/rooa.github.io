@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forward KL vs Reverse KL Divergence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500;700&family=Sora:wght@300;400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<style>
+  :root {
+    --font-display: "Zen Maru Gothic", "Sora", sans-serif;
+    --font-body: "Sora", "DM Sans", system-ui, sans-serif;
+    --font-mono: "Source Code Pro", "SF Mono", monospace;
+
+    --body: 16px;
+    --body-sm: 14px;
+    --caption: 12px;
+    --label: 11px;
+
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 32px;
+    --space-2xl: 48px;
+    --space-3xl: 64px;
+
+    --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+    /* Light mode */
+    --background: #F5F1EA;
+    --surface: #FDFCF9;
+    --surface-raised: #EDE8DF;
+    --border: #DDD6C9;
+    --border-visible: #C8BFB0;
+    --text-disabled: #A89B8A;
+    --text-secondary: #8A7E70;
+    --text-primary: #2A2520;
+    --text-display: #1C1816;
+    --accent: #B07356;
+
+    /* Visualization accents (functional, kept vivid for chart readability) */
+    --accent-p: #2563eb;
+    --accent-q: #9333ea;
+    --accent-q-fwd: #dc2626;
+    --accent-q-rev: #16a34a;
+    --accent-jsd: #ea580c;
+    --accent-tvd: #0891b2;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: #1C1916;
+      --surface: #252119;
+      --surface-raised: #2E2A22;
+      --border: #3A352D;
+      --border-visible: #4D463B;
+      --text-disabled: #5E5548;
+      --text-secondary: #9A8E7E;
+      --text-primary: #DDD4C6;
+      --text-display: #F0EAE0;
+      --accent: #C4845F;
+
+      --accent-p: #60a5fa;
+      --accent-q: #c084fc;
+      --accent-q-fwd: #f87171;
+      --accent-q-rev: #4ade80;
+      --accent-jsd: #fb923c;
+      --accent-tvd: #22d3ee;
+    }
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: var(--body);
+    line-height: 1.6;
+    background: var(--background);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: var(--space-3xl) var(--space-lg);
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: var(--space-2xl) var(--space-md); }
+  }
+
+  /* Page title breadcrumb */
+  .page-title {
+    font-family: var(--font-mono);
+    font-size: var(--label);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-disabled);
+    margin-bottom: var(--space-3xl);
+  }
+
+  .page-title a {
+    color: var(--text-disabled);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    transition: color 200ms var(--ease);
+  }
+
+  .page-title a:hover { color: var(--text-secondary); }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 5vw, 36px);
+    font-weight: 400;
+    color: var(--text-display);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: var(--space-sm);
+    text-wrap: balance;
+  }
+
+  h2 { text-wrap: balance; }
+
+  .subtitle {
+    font-size: var(--body-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2xl);
+    text-wrap: pretty;
+  }
+
+  /* Math card grid */
+  .math-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+
+  .math-card {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: var(--space-lg);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 3px 6px rgba(0, 0, 0, 0.03);
+  }
+
+  .math-card h3 {
+    font-family: var(--font-mono);
+    font-size: var(--label);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-sm);
+  }
+  .math-card.forward h3 { color: var(--accent-q-fwd); }
+  .math-card.reverse h3 { color: var(--accent-q-rev); }
+  .math-card.jsd h3 { color: var(--accent-jsd); }
+  .math-card.tvd h3 { color: var(--accent-tvd); }
+
+  .formula {
+    margin: var(--space-sm) 0;
+    padding: var(--space-sm);
+    background: var(--surface-raised);
+    border-radius: 6px;
+    text-align: center;
+    overflow-x: auto;
+  }
+
+  .property {
+    font-size: var(--body-sm);
+    color: var(--text-secondary);
+    margin-top: var(--space-sm);
+    text-wrap: pretty;
+  }
+  .property strong { color: var(--text-primary); }
+
+  /* Visualization panels */
+  .viz-container {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      0 4px 12px rgba(0, 0, 0, 0.03);
+  }
+
+  .viz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+    flex-wrap: wrap;
+    gap: var(--space-md);
+  }
+
+  .viz-header h2 {
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-display);
+  }
+
+  /* Controls */
+  .controls { display: flex; gap: var(--space-lg); align-items: center; flex-wrap: wrap; }
+
+  .control-group { display: flex; align-items: center; gap: var(--space-sm); }
+  .control-group label {
+    font-family: var(--font-mono);
+    font-size: var(--label);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .control-group input[type="range"] { width: 100px; accent-color: var(--text-primary); }
+  .control-group .value {
+    font-family: var(--font-mono);
+    font-size: var(--caption);
+    min-width: 2.5em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+
+  .mode-btns { display: flex; gap: 0; }
+  .mode-btn {
+    font-family: var(--font-mono);
+    padding: 8px 12px;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+    font-size: var(--caption);
+    font-weight: 500;
+    border: 1px solid var(--border-visible);
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: background-color 120ms var(--ease), color 120ms var(--ease), border-color 120ms var(--ease), scale 100ms var(--ease);
+  }
+  .mode-btn:first-child { border-radius: 6px 0 0 6px; }
+  .mode-btn:last-child { border-radius: 0 6px 6px 0; }
+  .mode-btn + .mode-btn { border-left: none; }
+  .mode-btn:active { scale: 0.96; }
+  .mode-btn.active {
+    background: var(--text-display);
+    color: var(--background);
+    border-color: var(--text-display);
+  }
+
+  /* SVG axes */
+  svg { display: block; width: 100%; overflow: visible; }
+  .axis text { font-size: 11px; fill: var(--text-secondary); }
+  .axis line, .axis path { stroke: var(--border); }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: var(--space-lg);
+    justify-content: center;
+    margin-top: var(--space-md);
+    font-size: var(--caption);
+    color: var(--text-secondary);
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-swatch { width: 20px; height: 3px; border-radius: 2px; }
+
+  .annotation { font-size: 11px; fill: var(--text-secondary); font-style: italic; }
+  .shaded-region { opacity: 0.08; }
+
+  /* KL readout */
+  .kl-readout {
+    display: flex;
+    gap: var(--space-lg);
+    justify-content: center;
+    margin-top: var(--space-md);
+    font-size: var(--body-sm);
+    font-family: var(--font-mono);
+  }
+  .kl-readout .kl-val { font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  .q-controls-row {
+    display: flex;
+    gap: var(--space-lg);
+    align-items: center;
+    flex-wrap: wrap;
+    padding: var(--space-md) 0;
+    border-top: 1px solid var(--border);
+    margin-top: var(--space-md);
+  }
+
+  .q-controls-row label {
+    font-family: var(--font-mono);
+    font-size: var(--caption);
+    color: var(--accent-q);
+    font-weight: 500;
+  }
+  .q-controls-row input[type="range"] { width: 160px; accent-color: var(--accent-q); }
+
+  /* Buttons */
+  .btn {
+    font-family: var(--font-mono);
+    font-size: var(--caption);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 8px 14px;
+    min-height: 2.5rem;
+    min-width: 2.5rem;
+    border: 1px solid var(--border-visible);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: color 150ms var(--ease), border-color 150ms var(--ease), scale 100ms var(--ease);
+  }
+  .btn:hover {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+  }
+  .btn:active { scale: 0.96; }
+
+  @media (max-width: 700px) {
+    .math-section { grid-template-columns: 1fr; }
+    .q-controls-row input[type="range"] { width: 120px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="page-title"><a href="/">Hiroaki Hayashi</a> / Forward vs Reverse KL</div>
+
+<h1>Forward KL vs Reverse KL Divergence</h1>
+<p class="subtitle">Interactive visualization of mode-covering and mode-seeking behavior when approximating a multimodal distribution</p>
+
+<!-- Section 1: Definitions + Optimal approximations (merged) -->
+<div class="viz-container">
+  <div class="viz-header">
+    <h2>Optimal Approximations</h2>
+    <div class="controls">
+      <div class="control-group">
+        <label>Modes</label>
+        <div class="mode-btns" id="mode-btns">
+          <button class="mode-btn" data-n="2">2</button>
+          <button class="mode-btn active" data-n="3">3</button>
+          <button class="mode-btn" data-n="4">4</button>
+          <button class="mode-btn" data-n="5">5</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <label>Spread</label>
+        <input type="range" id="separation" min="1.5" max="5" step="0.1" value="3">
+        <span class="value" id="sep-val">3.0</span>
+      </div>
+      <div class="control-group">
+        <label>Weight decay</label>
+        <input type="range" id="asymmetry" min="0.3" max="1" step="0.05" value="0.55">
+        <span class="value" id="asym-val">0.55</span>
+      </div>
+    </div>
+  </div>
+  <svg id="main-viz" height="300"></svg>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-p)"></div> Target p(x)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-q-fwd)"></div> Forward KL</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-q-rev)"></div> Reverse KL</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-jsd)"></div> JSD</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-tvd)"></div> TVD</div>
+  </div>
+  <div class="math-section" style="margin-top:1.25rem; margin-bottom:0;">
+    <div class="math-card forward">
+      <h3>Forward KL &mdash; $\mathrm{KL}(p \| q)$</h3>
+      <div class="formula">$$D_{\mathrm{KL}}(p \| q) = \mathbb{E}_{x \sim p}\!\left[\log \frac{p(x)}{q(x)}\right]$$</div>
+      <p class="property"><strong>Mode-covering / Zero-avoiding.</strong> The expectation under $p$ means $\log \frac{p}{q}$ explodes wherever $q(x) \approx 0$. So $q$ <em>must</em> spread to cover all of $p$'s support&mdash;even at the cost of placing mass in low-density regions between modes.</p>
+      <p class="property">In LLM distillation: <em>diverse but sometimes incoherent</em> outputs&mdash;the student hedges across all valid completions.</p>
+    </div>
+    <div class="math-card reverse">
+      <h3>Reverse KL &mdash; $\mathrm{KL}(q \| p)$</h3>
+      <div class="formula">$$D_{\mathrm{KL}}(q \| p) = \mathbb{E}_{x \sim q}\!\left[\log \frac{q(x)}{p(x)}\right]$$</div>
+      <p class="property"><strong>Mode-seeking / Zero-forcing.</strong> The expectation under $q$ means $\log \frac{q}{p}$ explodes wherever $p(x) \approx 0$. So $q$ <em>avoids</em> regions outside $p$'s support and concentrates on a single high-density mode.</p>
+      <p class="property">In LLM distillation: <em>sharp and fluent but lacks diversity</em>&mdash;the student may ignore valid alternatives entirely.</p>
+    </div>
+    <div class="math-card jsd">
+      <h3>Jensen-Shannon &mdash; $\mathrm{JSD}(p \| q)$</h3>
+      <div class="formula">$$\mathrm{JSD}(p \| q) = \tfrac{1}{2}\,\mathrm{KL}(p \| m) + \tfrac{1}{2}\,\mathrm{KL}(q \| m), \quad m = \tfrac{p+q}{2}$$</div>
+      <p class="property"><strong>Symmetric / Bounded.</strong> Averages both KL directions through the midpoint $m$. Bounded in $[0, \ln 2]$, always finite even when supports don't overlap. The optimal $q$ balances coverage and precision&mdash;wider than reverse KL, tighter than forward KL.</p>
+      <p class="property">In LLM distillation: a practical middle ground, often used in GAN-style training and f-divergence distillation.</p>
+    </div>
+    <div class="math-card tvd">
+      <h3>Total Variation &mdash; $\mathrm{TV}(p, q)$</h3>
+      <div class="formula">$$\mathrm{TV}(p, q) = \tfrac{1}{2}\!\int\! |p(x) - q(x)|\,dx$$</div>
+      <p class="property"><strong>Symmetric / $L^1$ distance.</strong> Measures the maximum probability mass that $q$ assigns differently from $p$. Bounded in $[0, 1]$. The optimal $q$ minimizes the area of mismatch&mdash;it tries to match the shape of the largest mode cluster.</p>
+      <p class="property">Directly interpretable: the largest event-probability gap between $p$ and $q$.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Section 2: Interactive q exploration -->
+<div class="viz-container">
+  <div class="viz-header">
+    <h2>Explore: Move q Yourself</h2>
+    <p style="font-size:0.8rem; color:var(--text-secondary)">Drag &mu; and &sigma; to see how each KL responds in real time</p>
+  </div>
+  <svg id="explore-viz" height="300"></svg>
+  <div class="q-controls-row">
+    <div class="control-group">
+      <label>&mu;<sub>q</sub></label>
+      <input type="range" id="q-mu" min="-5" max="5" step="0.05" value="0">
+      <span class="value" id="q-mu-val">0.00</span>
+    </div>
+    <div class="control-group">
+      <label>&sigma;<sub>q</sub></label>
+      <input type="range" id="q-sigma" min="0.15" max="3" step="0.05" value="0.8">
+      <span class="value" id="q-sigma-val">0.80</span>
+    </div>
+    <div class="kl-readout">
+      <span style="color:var(--accent-q-fwd)">$\mathrm{KL}(p\|q)$ = <span class="kl-val" id="fwd-kl-val">—</span></span>
+      <span style="color:var(--accent-q-rev)">$\mathrm{KL}(q\|p)$ = <span class="kl-val" id="rev-kl-val">—</span></span>
+      <span style="color:var(--accent-jsd)">JSD = <span class="kl-val" id="jsd-val">—</span></span>
+      <span style="color:var(--accent-tvd)">TV = <span class="kl-val" id="tvd-val">—</span></span>
+    </div>
+  </div>
+  <div class="legend" style="margin-top:0.5rem">
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-p)"></div> Target p(x)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-q)"></div> Your q(x)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-q-fwd); opacity:0.35; height:8px;"></div> p &gt; q (fwd KL cost)</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:var(--accent-q-rev); opacity:0.35; height:8px;"></div> q &gt; p (rev KL cost)</div>
+  </div>
+</div>
+
+<!-- Section 3: Optimization dynamics -->
+<div class="viz-container">
+  <div class="viz-header">
+    <div>
+      <h2>Optimization Dynamics</h2>
+      <p style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.15rem;">Both start from your q position above</p>
+    </div>
+    <div class="controls">
+      <button class="btn" id="btn-reset">Reset</button>
+      <button class="btn" id="btn-step">Step</button>
+      <button class="btn" id="btn-play">Play</button>
+    </div>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+    <div>
+      <p style="font-size:0.8rem; text-align:center; color:var(--accent-q-fwd); font-weight:600; margin-bottom:0.25rem;">Forward KL Optimization</p>
+      <svg id="opt-fwd" height="200"></svg>
+      <p style="font-size:0.75rem; color:var(--text-secondary); text-align:center; margin-top:0.25rem; font-variant-numeric:tabular-nums;" id="fwd-params"></p>
+    </div>
+    <div>
+      <p style="font-size:0.8rem; text-align:center; color:var(--accent-q-rev); font-weight:600; margin-bottom:0.25rem;">Reverse KL Optimization</p>
+      <svg id="opt-rev" height="200"></svg>
+      <p style="font-size:0.75rem; color:var(--text-secondary); text-align:center; margin-top:0.25rem; font-variant-numeric:tabular-nums;" id="rev-params"></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- .container -->
+<script>
+// ── Configuration ──
+const COMP_SIGMA = 0.35;
+const xMin = -6, xMax = 6;
+const xVals = d3.range(xMin, xMax, 0.05);
+
+// ── State ──
+let numModes = 3;
+let currentModes = []; // [{mu, weight}, ...]
+
+function gaussian(x, mu, sigma) {
+  return Math.exp(-0.5 * ((x - mu) / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI));
+}
+
+// Build mode positions and weights from controls
+function buildModes(n, sep, decay) {
+  const positions = [];
+  const rawWeights = [];
+  for (let i = 0; i < n; i++) {
+    // Center modes around 0, evenly spaced
+    const t = n === 1 ? 0 : (i / (n - 1)) * 2 - 1; // -1 to 1
+    positions.push(t * sep);
+    rawWeights.push(Math.pow(decay, i));
+  }
+  const wSum = rawWeights.reduce((a, b) => a + b, 0);
+  return positions.map((mu, i) => ({ mu, weight: rawWeights[i] / wSum }));
+}
+
+function targetPDF(x) {
+  let v = 0;
+  for (const m of currentModes) v += m.weight * gaussian(x, m.mu, COMP_SIGMA);
+  return v;
+}
+
+// ── KL computations ──
+function computeKLFromTarget(mu, sigma, mode) {
+  const dx = 0.04;
+  let kl = 0;
+  for (let x = -8; x <= 8; x += dx) {
+    const p = targetPDF(x);
+    const q = gaussian(x, mu, sigma);
+    if (mode === 'forward') {
+      if (p > 1e-15 && q > 1e-15) kl += p * Math.log(p / q) * dx;
+    } else {
+      if (q > 1e-15 && p > 1e-15) kl += q * Math.log(q / p) * dx;
+      else if (q > 1e-15) kl += q * 15 * dx;
+    }
+  }
+  return kl;
+}
+
+// ── JSD and TVD computations ──
+function computeJSD(mu, sigma) {
+  const dx = 0.04;
+  let jsd = 0;
+  for (let x = -8; x <= 8; x += dx) {
+    const p = targetPDF(x);
+    const q = gaussian(x, mu, sigma);
+    const m = (p + q) / 2;
+    if (m > 1e-15) {
+      if (p > 1e-15) jsd += 0.5 * p * Math.log(p / m) * dx;
+      if (q > 1e-15) jsd += 0.5 * q * Math.log(q / m) * dx;
+    }
+  }
+  return jsd;
+}
+
+function computeTVD(mu, sigma) {
+  const dx = 0.04;
+  let tv = 0;
+  for (let x = -8; x <= 8; x += dx) {
+    tv += Math.abs(targetPDF(x) - gaussian(x, mu, sigma)) * dx;
+  }
+  return 0.5 * tv;
+}
+
+// Generic two-phase grid search for any divergence
+function gridSearchOptimal(lossFn) {
+  let bestLoss = Infinity, bestMu = 0, bestSigma = COMP_SIGMA;
+  const fwd = forwardKLOptimal();
+  const centers = currentModes.map(m => m.mu).concat([fwd.mu]);
+  for (const mc of centers) {
+    for (let m = mc - 0.8; m <= mc + 0.8; m += 0.1) {
+      for (let s = 0.2; s <= 2.2; s += 0.1) {
+        const l = lossFn(m, s);
+        if (l < bestLoss) { bestLoss = l; bestMu = m; bestSigma = s; }
+      }
+    }
+  }
+  const mu0 = bestMu, s0 = bestSigma;
+  for (let m = mu0 - 0.15; m <= mu0 + 0.15; m += 0.03) {
+    for (let s = Math.max(0.15, s0 - 0.15); s <= s0 + 0.15; s += 0.03) {
+      const l = lossFn(m, s);
+      if (l < bestLoss) { bestLoss = l; bestMu = m; bestSigma = s; }
+    }
+  }
+  return { mu: bestMu, sigma: bestSigma };
+}
+
+// Forward KL optimal: moment-matching (analytical for any mixture)
+function forwardKLOptimal() {
+  let mean = 0, m2 = 0;
+  for (const m of currentModes) {
+    mean += m.weight * m.mu;
+  }
+  for (const m of currentModes) {
+    m2 += m.weight * (COMP_SIGMA * COMP_SIGMA + m.mu * m.mu);
+  }
+  const variance = m2 - mean * mean;
+  return { mu: mean, sigma: Math.sqrt(variance) };
+}
+
+function reverseKLOptimal() {
+  return gridSearchOptimal((m, s) => computeKLFromTarget(m, s, 'reverse'));
+}
+
+function jsdOptimal() {
+  return gridSearchOptimal(computeJSD);
+}
+
+function tvdOptimal() {
+  return gridSearchOptimal(computeTVD);
+}
+
+// ── Read controls ──
+function getParams() {
+  return {
+    sep: +document.getElementById('separation').value,
+    decay: +document.getElementById('asymmetry').value,
+  };
+}
+
+function refreshModes() {
+  const { sep, decay } = getParams();
+  currentModes = buildModes(numModes, sep, decay);
+}
+
+// ── Rendering helpers ──
+function makeLine(vals, xS, yS) {
+  return d3.line().x((_, i) => xS(xVals[i])).y((_, i) => yS(vals[i])).curve(d3.curveBasis)(vals);
+}
+
+function makeArea(vals, xS, yS, h) {
+  return d3.area().x((_, i) => xS(xVals[i])).y0(h).y1((_, i) => yS(vals[i])).curve(d3.curveBasis)(vals);
+}
+
+function drawGrid(g, xS, yS, w, h) {
+  g.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(xS).ticks(8).tickSize(-h).tickFormat(''))
+    .selectAll('line').attr('stroke-opacity', 0.3);
+  g.append('g').attr('class', 'axis')
+    .call(d3.axisLeft(yS).ticks(4).tickSize(-w).tickFormat(''))
+    .selectAll('line').attr('stroke-opacity', 0.3);
+}
+
+// ── Section 1: Optimal approximations ──
+function renderMainViz() {
+  refreshModes();
+  const { sep, decay } = getParams();
+  document.getElementById('sep-val').textContent = sep.toFixed(1);
+  document.getElementById('asym-val').textContent = decay.toFixed(2);
+
+  const svg = d3.select('#main-viz');
+  svg.selectAll('*').remove();
+  const width = svg.node().getBoundingClientRect().width;
+  const height = 300;
+  const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+  const w = width - margin.left - margin.right;
+  const h = height - margin.top - margin.bottom;
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const pVals = xVals.map(x => targetPDF(x));
+  const fwd = forwardKLOptimal();
+  const rev = reverseKLOptimal();
+  const jsd = jsdOptimal();
+  const tvd = tvdOptimal();
+  const qFwdVals = xVals.map(x => gaussian(x, fwd.mu, fwd.sigma));
+  const qRevVals = xVals.map(x => gaussian(x, rev.mu, rev.sigma));
+  const qJsdVals = xVals.map(x => gaussian(x, jsd.mu, jsd.sigma));
+  const qTvdVals = xVals.map(x => gaussian(x, tvd.mu, tvd.sigma));
+  const yMax = Math.max(...pVals, ...qFwdVals, ...qRevVals, ...qJsdVals, ...qTvdVals) * 1.12;
+
+  const xS = d3.scaleLinear().domain([xMin, xMax]).range([0, w]);
+  const yS = d3.scaleLinear().domain([0, yMax]).range([h, 0]);
+  drawGrid(g, xS, yS, w, h);
+
+  g.append('path').datum(pVals).attr('d', makeArea(pVals, xS, yS, h))
+    .attr('fill', 'var(--accent-p)').attr('class', 'shaded-region');
+  g.append('path').datum(pVals).attr('d', makeLine(pVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', 'var(--accent-p)').attr('stroke-width', 2.5);
+  g.append('path').datum(qFwdVals).attr('d', makeLine(qFwdVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', 'var(--accent-q-fwd)').attr('stroke-width', 2).attr('stroke-dasharray', '6,3');
+  g.append('path').datum(qRevVals).attr('d', makeLine(qRevVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', 'var(--accent-q-rev)').attr('stroke-width', 2).attr('stroke-dasharray', '2,2');
+  g.append('path').datum(qJsdVals).attr('d', makeLine(qJsdVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', 'var(--accent-jsd)').attr('stroke-width', 1.8).attr('stroke-dasharray', '8,4');
+  g.append('path').datum(qTvdVals).attr('d', makeLine(qTvdVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', 'var(--accent-tvd)').attr('stroke-width', 1.8).attr('stroke-dasharray', '4,2,1,2');
+}
+
+// ── Section 2: Interactive q exploration ──
+function renderExploreViz() {
+  const muQ = +document.getElementById('q-mu').value;
+  const sigmaQ = +document.getElementById('q-sigma').value;
+  document.getElementById('q-mu-val').textContent = muQ.toFixed(2);
+  document.getElementById('q-sigma-val').textContent = sigmaQ.toFixed(2);
+
+  const svg = d3.select('#explore-viz');
+  svg.selectAll('*').remove();
+  const width = svg.node().getBoundingClientRect().width;
+  const height = 300;
+  const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+  const w = width - margin.left - margin.right;
+  const h = height - margin.top - margin.bottom;
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const pVals = xVals.map(x => targetPDF(x));
+  const qVals = xVals.map(x => gaussian(x, muQ, sigmaQ));
+  const yMax = Math.max(...pVals, ...qVals) * 1.12;
+
+  const xS = d3.scaleLinear().domain([xMin, xMax]).range([0, w]);
+  const yS = d3.scaleLinear().domain([0, yMax]).range([h, 0]);
+  drawGrid(g, xS, yS, w, h);
+
+  // Smooth penalty areas between curves
+  // Forward KL penalty: region where p > q (p has mass that q misses)
+  const fwdAreaPath = d3.area()
+    .x((_, i) => xS(xVals[i]))
+    .y0((_, i) => yS(Math.min(pVals[i], qVals[i])))
+    .y1((_, i) => yS(pVals[i]))
+    .curve(d3.curveBasis);
+  g.append('path').datum(pVals).attr('d', fwdAreaPath)
+    .attr('fill', 'var(--accent-q-fwd)').attr('opacity', 0.18);
+
+  // Reverse KL penalty: region where q > p (q wastes mass outside p)
+  const revAreaPath = d3.area()
+    .x((_, i) => xS(xVals[i]))
+    .y0((_, i) => yS(Math.min(pVals[i], qVals[i])))
+    .y1((_, i) => yS(qVals[i]))
+    .curve(d3.curveBasis);
+  g.append('path').datum(qVals).attr('d', revAreaPath)
+    .attr('fill', 'var(--accent-q-rev)').attr('opacity', 0.18);
+
+  // Curves
+  g.append('path').datum(pVals).attr('d', makeArea(pVals, xS, yS, h))
+    .attr('fill', 'var(--accent-p)').attr('class', 'shaded-region');
+  g.append('path').datum(pVals).attr('d', makeLine(pVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', 'var(--accent-p)').attr('stroke-width', 2.5);
+  g.append('path').datum(qVals).attr('d', makeLine(qVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', 'var(--accent-q)').attr('stroke-width', 2.5);
+
+  // Divergence values
+  const fwdKL = computeKLFromTarget(muQ, sigmaQ, 'forward');
+  const revKL = computeKLFromTarget(muQ, sigmaQ, 'reverse');
+  const jsdVal = computeJSD(muQ, sigmaQ);
+  const tvdVal = computeTVD(muQ, sigmaQ);
+  document.getElementById('fwd-kl-val').textContent = fwdKL.toFixed(3);
+  document.getElementById('rev-kl-val').textContent = revKL.toFixed(3);
+  document.getElementById('jsd-val').textContent = jsdVal.toFixed(3);
+  document.getElementById('tvd-val').textContent = tvdVal.toFixed(3);
+}
+
+// ── Section 4: Optimization dynamics ──
+let fwdState, revState, animFrame, playing = false;
+
+function initOptState() {
+  const muQ = +document.getElementById('q-mu').value;
+  const sigmaQ = +document.getElementById('q-sigma').value;
+  fwdState = { mu: muQ, sigma: sigmaQ, step: 0 };
+  revState = { mu: muQ, sigma: sigmaQ, step: 0 };
+}
+
+function forwardKLGrad(mu, sigma) {
+  const dx = 0.04;
+  let ep_x = 0, ep_xmu2 = 0;
+  for (let x = -8; x <= 8; x += dx) {
+    const p = targetPDF(x);
+    ep_x += p * x * dx;
+    ep_xmu2 += p * (x - mu) ** 2 * dx;
+  }
+  return { dmu: -(ep_x - mu) / (sigma * sigma), dsigma: 1 / sigma - ep_xmu2 / (sigma ** 3) };
+}
+
+function reverseKLGrad(mu, sigma) {
+  const eps = 0.005;
+  const kl0 = computeKLFromTarget(mu, sigma, 'reverse');
+  return {
+    dmu: (computeKLFromTarget(mu + eps, sigma, 'reverse') - kl0) / eps,
+    dsigma: (computeKLFromTarget(mu, sigma + eps, 'reverse') - kl0) / eps
+  };
+}
+
+function gradientStep(state, mode, lr) {
+  const grad = (mode === 'forward') ? forwardKLGrad(state.mu, state.sigma) : reverseKLGrad(state.mu, state.sigma);
+  const clip = 1.5;
+  grad.dmu = Math.max(-clip, Math.min(clip, grad.dmu));
+  grad.dsigma = Math.max(-clip, Math.min(clip, grad.dsigma));
+  state.mu -= lr * grad.dmu;
+  state.sigma -= lr * grad.dsigma;
+  state.sigma = Math.max(0.15, state.sigma);
+  state.step++;
+}
+
+function renderOptViz(svgId, state, color) {
+  const svg = d3.select(`#${svgId}`);
+  svg.selectAll('*').remove();
+  const width = svg.node().getBoundingClientRect().width;
+  const height = 200;
+  const margin = { top: 10, right: 10, bottom: 20, left: 30 };
+  const w = width - margin.left - margin.right;
+  const h = height - margin.top - margin.bottom;
+  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+  const pVals = xVals.map(x => targetPDF(x));
+  const qVals = xVals.map(x => gaussian(x, state.mu, state.sigma));
+  const yMax = Math.max(...pVals, ...qVals) * 1.15;
+  const xS = d3.scaleLinear().domain([xMin, xMax]).range([0, w]);
+  const yS = d3.scaleLinear().domain([0, yMax]).range([h, 0]);
+
+  g.append('g').attr('class', 'axis').attr('transform', `translate(0,${h})`)
+    .call(d3.axisBottom(xS).ticks(5).tickFormat(''));
+
+  g.append('path').datum(pVals).attr('d', makeLine(pVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', 'var(--accent-p)').attr('stroke-width', 2);
+  g.append('path').datum(qVals).attr('d', makeLine(qVals, xS, yS))
+    .attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2).attr('stroke-dasharray', '4,2');
+
+  g.append('text').attr('x', w - 5).attr('y', 15)
+    .attr('text-anchor', 'end').attr('font-size', '10px').attr('fill', 'var(--text-secondary)')
+    .text(`step ${state.step}`);
+}
+
+function renderOptBoth() {
+  renderOptViz('opt-fwd', fwdState, 'var(--accent-q-fwd)');
+  renderOptViz('opt-rev', revState, 'var(--accent-q-rev)');
+  document.getElementById('fwd-params').textContent = `\u03BC=${fwdState.mu.toFixed(3)}, \u03C3=${fwdState.sigma.toFixed(3)}`;
+  document.getElementById('rev-params').textContent = `\u03BC=${revState.mu.toFixed(3)}, \u03C3=${revState.sigma.toFixed(3)}`;
+}
+
+function doStep() {
+  gradientStep(fwdState, 'forward', 0.03);
+  gradientStep(revState, 'reverse', 0.03);
+  renderOptBoth();
+}
+
+function animate() {
+  if (!playing) return;
+  doStep();
+  animFrame = requestAnimationFrame(() => setTimeout(animate, 80));
+}
+
+// ── Event listeners ──
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    numModes = +btn.dataset.n;
+    renderMainViz();
+    renderExploreViz();
+    initOptState();
+    renderOptBoth();
+  });
+});
+
+['separation', 'asymmetry'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    renderMainViz();
+    renderExploreViz();
+    initOptState();
+    renderOptBoth();
+  });
+});
+
+['q-mu', 'q-sigma'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    renderExploreViz();
+    initOptState();
+    renderOptBoth();
+  });
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  playing = false;
+  document.getElementById('btn-play').textContent = 'Play';
+  cancelAnimationFrame(animFrame);
+  initOptState();
+  renderOptBoth();
+});
+document.getElementById('btn-step').addEventListener('click', doStep);
+document.getElementById('btn-play').addEventListener('click', () => {
+  playing = !playing;
+  document.getElementById('btn-play').textContent = playing ? 'Pause' : 'Play';
+  if (playing) animate();
+});
+
+// ── Init ──
+refreshModes();
+renderMainViz();
+renderExploreViz();
+initOptState();
+renderOptBoth();
+
+window.addEventListener('resize', () => {
+  renderMainViz();
+  renderExploreViz();
+  renderOptBoth();
+});
+</script>
+
+</body>
+</html>
