@@ -175,7 +175,10 @@
     border-radius: 6px;
     text-align: center;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
+
+  .formula .katex { font-size: 0.85em; }
 
   .property {
     font-size: var(--body-sm);
@@ -332,6 +335,8 @@
   @media (max-width: 700px) {
     .math-section { grid-template-columns: 1fr; }
     .q-controls-row input[type="range"] { width: 120px; }
+    .formula .katex { font-size: 0.78em; }
+    .math-card { padding: var(--space-md); }
   }
 </style>
 </head>
