@@ -13,7 +13,7 @@
 </head>
 <body>
   <div class="wrapper">
-    <h1>Hiroaki Hayashi<span class="cursor" aria-hidden="true">_</span></h1>
+    <h1>Hiroaki Hayashi</h1>
 
     <header>
       <nav>
@@ -26,16 +26,16 @@
       </nav>
     </header>
 
-    <p class="bio">Research scientist at Salesforce Research.</p>
+    <p class="bio">Research scientist at Salesforce Research. I build and study large language models: how to train them, how to make them generate code, and lately, how to figure out where they fall apart. Previously at Carnegie Mellon with Graham Neubig.</p>
 
     <h2>Interests</h2>
     <ul class="interests">
-      <li>Large Language Model training, finetuning, evaluation</li>
-      <li>Software engineering LLM Agents</li>
-      <li>Text summarization</li>
+      <li>Code-generating LLMs: training, inference, and the CodeGen family</li>
+      <li>Where LLMs fail: multi-turn reasoning, long-context, evaluation gaps</li>
+      <li>Agentic software engineering, LLMs as developers not just assistants</li>
     </ul>
 
-    <h2>Recent Work</h2>
+    <h2>Selected Work</h2>
     <ul class="publications">
       <li class="bibitem">
         <a href="https://arxiv.org/abs/2505.06120">LLMs Get Lost In Multi-Turn Conversation</a>
@@ -75,42 +75,24 @@
       </li>
     </ul>
 
+    <h2>Little Things</h2>
+    <ul class="projects">
+      <li class="project-item">
+        <a href="importance_sampling.html">Importance Sampling</a>
+        <span class="project-desc">Interactive visualizer for variance reduction in Monte Carlo estimation</span>
+      </li>
+      <li class="project-item">
+        <a href="caffeine.html">Caffeine Decay</a>
+        <span class="project-desc">Track your caffeine half-life throughout the day</span>
+      </li>
+    </ul>
+
     <div class="footnote">
       Design inspired by <a href="https://github.com/tetsuok">tetsuok</a>.
     </div>
   </div>
   <canvas id="brush-cursor" aria-hidden="true"></canvas>
   <script>
-    // ============================================
-    // Typed bio line
-    // Types out the bio text after page-load animation
-    // ============================================
-    (function() {
-      var bio = document.querySelector('.bio');
-      if (!bio) return;
-      var fullText = bio.textContent;
-      var cursor = document.createElement('span');
-      cursor.className = 'cursor';
-      cursor.setAttribute('aria-hidden', 'true');
-      cursor.textContent = '_';
-
-      bio.textContent = '';
-      bio.appendChild(cursor);
-
-      var i = 0;
-      // Start after fadeInUp completes (160ms delay + 600ms duration)
-      setTimeout(function type() {
-        if (i < fullText.length) {
-          bio.insertBefore(document.createTextNode(fullText[i]), cursor);
-          i++;
-          setTimeout(type, 45 + Math.random() * 30);
-        } else {
-          // Blink a few times then fade out
-          cursor.className = 'cursor cursor--done';
-        }
-      }, 800);
-    })();
-
     // ============================================
     // Time-aware atmosphere
     // Subtly shifts light-mode palette by time of day

@@ -6,7 +6,7 @@
   <title>Caffeine Decay</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500&family=Space+Mono:wght@400;700&family=Doto:wght@100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500;700&family=Sora:wght@300;400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3"></script>
   <style>
@@ -14,9 +14,9 @@
        Tokens
        ============================================ */
     :root {
-      --font-display: "Doto", "Space Mono", monospace;
-      --font-body: "Space Grotesk", "DM Sans", system-ui, sans-serif;
-      --font-mono: "Space Mono", "JetBrains Mono", "SF Mono", monospace;
+      --font-display: "Zen Maru Gothic", "Sora", sans-serif;
+      --font-body: "Sora", "DM Sans", system-ui, sans-serif;
+      --font-mono: "Source Code Pro", "SF Mono", monospace;
 
       --display-xl: 72px;
       --display-lg: 48px;
@@ -37,33 +37,36 @@
 
       --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 
-      /* Light mode */
-      --black: #F5F5F5;
-      --surface: #FFFFFF;
-      --surface-raised: #F0F0F0;
-      --border: #E8E8E8;
-      --border-visible: #CCCCCC;
-      --text-disabled: #999999;
-      --text-secondary: #666666;
-      --text-primary: #1A1A1A;
-      --text-display: #000000;
-      --accent: #D71921;
-      --accent-subtle: rgba(215, 25, 33, 0.1);
+      /* Light mode — 日向 (Hinata) */
+      --background: #F5F1EA;
+      --surface: #FDFCF9;
+      --surface-raised: #EDE8DF;
+      --border: #DDD6C9;
+      --border-visible: #C8BFB0;
+      --text-disabled: #A89B8A;
+      --text-secondary: #8A7E70;
+      --text-primary: #2A2520;
+      --text-display: #1C1816;
+      --accent: #B07356;
+      --accent-subtle: rgba(176, 115, 86, 0.1);
       --warning: #D4A843;
-      --success: #4A9E5C;
+      --success: #7B8F6A;
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --black: #000000;
-        --surface: #111111;
-        --surface-raised: #1A1A1A;
-        --border: #222222;
-        --border-visible: #333333;
-        --text-disabled: #666666;
-        --text-secondary: #999999;
-        --text-primary: #E8E8E8;
-        --text-display: #FFFFFF;
+        --background: #1C1916;
+        --surface: #252119;
+        --surface-raised: #2E2A22;
+        --border: #3A352D;
+        --border-visible: #4D463B;
+        --text-disabled: #5E5548;
+        --text-secondary: #9A8E7E;
+        --text-primary: #DDD4C6;
+        --text-display: #F0EAE0;
+        --accent: #C4845F;
+        --accent-subtle: rgba(196, 132, 95, 0.1);
+        --success: #8FA07A;
       }
     }
 
@@ -81,7 +84,7 @@
       font-weight: 300;
       font-size: var(--body);
       line-height: 1.5;
-      background: var(--black);
+      background: var(--background);
       color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
@@ -281,7 +284,7 @@
       border: none;
       border-radius: 999px;
       background: var(--text-display);
-      color: var(--black);
+      color: var(--background);
       cursor: pointer;
       transition: opacity 200ms var(--ease);
       margin-top: var(--space-sm);

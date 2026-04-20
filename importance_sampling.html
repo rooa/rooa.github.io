@@ -7,23 +7,23 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500;700&family=Sora:wght@300;400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --anthropic-dark: #141413;
-            --anthropic-light: #faf9f5;
-            --anthropic-mid-gray: #b0aea5;
-            --anthropic-light-gray: #e8e6dc;
-            --anthropic-orange: #d97757;
-            --anthropic-blue: #6a9bcc;
-            --anthropic-green: #788c5d;
+            --anthropic-dark: #1C1816;
+            --anthropic-light: #F5F1EA;
+            --anthropic-mid-gray: #8A7E70;
+            --anthropic-light-gray: #DDD6C9;
+            --anthropic-orange: #B07356;
+            --anthropic-blue: #5A7E8A;
+            --anthropic-green: #7B8F6A;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, var(--anthropic-light) 0%, #f5f3ee 100%);
+            font-family: 'Sora', sans-serif;
+            background: linear-gradient(135deg, var(--anthropic-light) 0%, #EDE8DF 100%);
             min-height: 100vh;
             color: var(--anthropic-dark);
         }
@@ -59,7 +59,7 @@
         }
 
         .sidebar h1 {
-            font-family: 'Lora', serif;
+            font-family: 'Zen Maru Gothic', serif;
             font-size: 22px;
             font-weight: 500;
             color: var(--anthropic-dark);
@@ -96,7 +96,7 @@
             background: var(--anthropic-light);
             padding: 10px;
             border-radius: 8px;
-            font-family: 'Courier New', monospace;
+            font-family: 'Source Code Pro', monospace;
             font-size: 14px;
             margin-bottom: 10px;
             border: 1px solid var(--anthropic-light-gray);
@@ -169,7 +169,7 @@
         }
 
         .value-display {
-            font-family: 'Courier New', monospace;
+            font-family: 'Source Code Pro', monospace;
             font-size: 12px;
             color: var(--anthropic-mid-gray);
             min-width: 50px;
@@ -255,7 +255,7 @@
         }
 
         .prose h2 {
-            font-family: 'Lora', serif;
+            font-family: 'Zen Maru Gothic', serif;
             font-size: 18px;
             font-weight: 500;
             color: var(--anthropic-dark);
@@ -289,7 +289,7 @@
         }
 
         .prose code {
-            font-family: 'Courier New', monospace;
+            font-family: 'Source Code Pro', monospace;
             font-size: 12.5px;
             background: var(--anthropic-light);
             padding: 1px 5px;
@@ -354,7 +354,7 @@
                 <div class="control-group">
                     <label>Target Function</label>
                     <div class="slider-container">
-                        <select id="targetFn" onchange="updateParam('targetFn', this.value)" style="flex:1; padding:6px; border-radius:6px; border:1px solid var(--anthropic-light-gray); font-family:'Poppins',sans-serif; font-size:13px;">
+                        <select id="targetFn" onchange="updateParam('targetFn', this.value)" style="flex:1; padding:6px; border-radius:6px; border:1px solid var(--anthropic-light-gray); font-family:'Sora',sans-serif; font-size:13px;">
                             <option value="bimodal">Bimodal Gaussian</option>
                             <option value="skewed">Skewed Peak</option>
                             <option value="sharp">Sharp Spike</option>
@@ -517,7 +517,7 @@
             CH = sidebarEl.offsetHeight || 700;
             let canvas = createCanvas(CW, CH);
             canvas.parent('canvas-container');
-            textFont('Poppins');
+            textFont('Sora');
             document.querySelector('.loading').style.display = 'none';
 
             panelW = (CW - 60) / 2;
@@ -549,7 +549,7 @@
         }
 
         function draw() {
-            background(250, 249, 245);
+            background(245, 241, 234);
 
             // Layout
             let leftX = 20;
