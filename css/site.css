@@ -308,6 +308,23 @@ h2:nth-of-type(1) { animation: fadeInUp 600ms var(--ease) 240ms both; }
 h2:nth-of-type(2) { animation: fadeInUp 600ms var(--ease) 320ms both; }
 .footnote         { animation: fadeInUp 600ms var(--ease) 400ms both; }
 
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor {
+  font-weight: 300;
+  color: var(--text-secondary);
+  animation: blink 1s step-end infinite;
+}
+
+.cursor--done {
+  animation: blink 1s step-end 3;
+  animation-fill-mode: forwards;
+  opacity: 0;
+}
+
 /* ============================================
    Generative elements (canvases)
    ============================================ */
@@ -326,9 +343,12 @@ h2:nth-of-type(2) { animation: fadeInUp 600ms var(--ease) 320ms both; }
   #brush-cursor {
     display: none;
   }
-  h1, header, .bio, .interests, h2, .publications, .footnote {
+  h1, header, .bio, .interests, h2, .publications, .footnote,
+  .cursor, .cursor--done {
     animation: none;
   }
+  .cursor { opacity: 1; }
+  .cursor--done { opacity: 0; }
 }
 
 /* ============================================
