@@ -296,6 +296,13 @@ h2 {
   font-weight: 400;
 }
 
+.bibitem .venue {
+  display: block;
+  font-size: var(--body-sm);
+  color: var(--accent);
+  margin-top: var(--space-xs);
+}
+
 /* ============================================
    Footnote
    ============================================ */
