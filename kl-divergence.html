@@ -13,6 +13,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.21/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
 <style>
   :root {
+    color-scheme: light dark;
     --font-display: "Zen Maru Gothic", "Sora", sans-serif;
     --font-body: "Sora", "DM Sans", system-ui, sans-serif;
     --font-mono: "Source Code Pro", "SF Mono", monospace;
@@ -32,17 +33,17 @@
 
     --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 
-    /* Light mode */
-    --background: #F5F1EA;
-    --surface: #FDFCF9;
-    --surface-raised: #EDE8DF;
-    --border: #DDD6C9;
-    --border-visible: #C8BFB0;
-    --text-disabled: #A89B8A;
-    --text-secondary: #8A7E70;
-    --text-primary: #2A2520;
-    --text-display: #1C1816;
-    --accent: #B07356;
+    /* Light mode — 月光 (Gekko) */
+    --background: #F1F4F8;
+    --surface: #FBFCFE;
+    --surface-raised: #E6EBF1;
+    --border: #D9E0E8;
+    --border-visible: #BCC7D3;
+    --text-disabled: #8A95A3;
+    --text-secondary: #626E7D;
+    --text-primary: #1B222B;
+    --text-display: #0E151D;
+    --accent: #4A6E9B;
 
     /* Visualization accents (functional, kept vivid for chart readability) */
     --accent-p: #2563eb;
@@ -55,16 +56,16 @@
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --background: #1C1916;
-      --surface: #252119;
-      --surface-raised: #2E2A22;
-      --border: #3A352D;
-      --border-visible: #4D463B;
-      --text-disabled: #5E5548;
-      --text-secondary: #9A8E7E;
-      --text-primary: #DDD4C6;
-      --text-display: #F0EAE0;
-      --accent: #C4845F;
+      --background: #0F141A;
+      --surface: #161C24;
+      --surface-raised: #1E262F;
+      --border: #2A333D;
+      --border-visible: #3B4653;
+      --text-disabled: #5C6773;
+      --text-secondary: #8C99A8;
+      --text-primary: #D2DAE3;
+      --text-display: #EEF3F8;
+      --accent: #8FB4DC;
 
       --accent-p: #60a5fa;
       --accent-q: #c084fc;

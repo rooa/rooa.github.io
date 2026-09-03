@@ -13,6 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500;700&family=Sora:wght@300;400;500&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
+          color-scheme: light dark;
             --font-display: "Zen Maru Gothic", "Sora", sans-serif;
             --font-body: "Sora", "DM Sans", system-ui, sans-serif;
             --font-mono: "Source Code Pro", "SF Mono", monospace;
@@ -32,35 +33,35 @@
 
             --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 
-            /* Light mode */
-            --background: #F5F1EA;
-            --surface: #FDFCF9;
-            --surface-raised: #EDE8DF;
-            --border: #DDD6C9;
-            --border-visible: #C8BFB0;
-            --text-disabled: #A89B8A;
-            --text-secondary: #8A7E70;
-            --text-primary: #2A2520;
-            --text-display: #1C1816;
-            --accent: #B07356;
-            --interactive: #5A7E8A;
-            --success: #7B8F6A;
+            /* Light mode — 月光 (Gekko) */
+            --background: #F1F4F8;
+            --surface: #FBFCFE;
+            --surface-raised: #E6EBF1;
+            --border: #D9E0E8;
+            --border-visible: #BCC7D3;
+            --text-disabled: #8A95A3;
+            --text-secondary: #626E7D;
+            --text-primary: #1B222B;
+            --text-display: #0E151D;
+            --accent: #4A6E9B;
+            --interactive: #376E82;
+            --success: #4F8C79;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --background: #1C1916;
-                --surface: #252119;
-                --surface-raised: #2E2A22;
-                --border: #3A352D;
-                --border-visible: #4D463B;
-                --text-disabled: #5E5548;
-                --text-secondary: #9A8E7E;
-                --text-primary: #DDD4C6;
-                --text-display: #F0EAE0;
-                --accent: #C4845F;
-                --interactive: #7BA0AB;
-                --success: #8FA07A;
+                --background: #0F141A;
+                --surface: #161C24;
+                --surface-raised: #1E262F;
+                --border: #2A333D;
+                --border-visible: #3B4653;
+                --text-disabled: #5C6773;
+                --text-secondary: #8C99A8;
+                --text-primary: #D2DAE3;
+                --text-display: #EEF3F8;
+                --accent: #8FB4DC;
+                --interactive: #7FAABF;
+                --success: #7FBBA2;
             }
         }
 
@@ -633,7 +634,7 @@
         }
 
         function draw() {
-            background(245, 241, 234);
+            background(241, 244, 248);
 
             // Layout
             let leftX = 20;
@@ -732,7 +733,7 @@
             let curvePlotW = pw - 20;
 
             // Axes background
-            fill(252, 251, 248);
+            fill(251, 252, 254);
             noStroke();
             rect(mx, curvePlotY, curvePlotW, curvePlotH, 4);
 
@@ -753,7 +754,7 @@
 
             // Fill under f(x)
             noStroke();
-            fill(217, 119, 87, 30);
+            fill(212, 94, 106, 30);
             beginShape();
             vertex(mx, curvePlotY + curvePlotH);
             for (let px = 0; px <= curvePlotW; px += 2) {
@@ -767,7 +768,7 @@
 
             // f(x) curve
             noFill();
-            stroke(217, 119, 87);
+            stroke(212, 94, 106);
             strokeWeight(2.5);
             beginShape();
             for (let px = 0; px <= curvePlotW; px += 2) {
@@ -809,7 +810,7 @@
                 // Uniform line p(x) = 1/(XMAX-XMIN)
                 let uPDF = uniformPDF();
                 let uy = curvePlotY + curvePlotH - (uPDF / scaleMax) * (curvePlotH - 8);
-                stroke(140, 140, 130);
+                stroke(134, 143, 153);
                 strokeWeight(1.5);
                 strokeCap(ROUND);
                 let dashLen = 6;
@@ -824,14 +825,14 @@
             noStroke();
             textSize(10);
             textStyle(NORMAL);
-            fill(217, 119, 87);
+            fill(212, 94, 106);
             textAlign(LEFT, TOP);
             text('f(x)', mx + 4, curvePlotY + 4);
             if (!isUniform) {
                 fill(106, 155, 204);
                 text('q(x)', mx + 35, curvePlotY + 4);
             } else {
-                fill(140, 140, 130);
+                fill(134, 143, 153);
                 text('p(x) = 1/L', mx + 35, curvePlotY + 4);
             }
 
@@ -845,7 +846,7 @@
             // --- Section 2: Histogram ---
             let histPlotY = curY;
 
-            fill(252, 251, 248);
+            fill(251, 252, 254);
             noStroke();
             rect(mx, histPlotY, curvePlotW, histPlotH, 4);
 
@@ -881,13 +882,13 @@
 
                 noStroke();
                 if (isUniform) {
-                    fill(176, 174, 165, 140);
+                    fill(166, 173, 182, 140);
                 } else {
                     // Color by weight intensity
                     let intensity = Math.min(density / (maxBinDensity + 0.001), 1.0);
-                    let r = lerp(106, 217, intensity);
-                    let g = lerp(155, 119, intensity);
-                    let b = lerp(204, 87, intensity);
+                    let r = lerp(106, 212, intensity);
+                    let g = lerp(155, 94, intensity);
+                    let b = lerp(204, 106, intensity);
                     fill(r, g, b, 160);
                 }
                 rect(bx, by, barW - 0.5, barH);
@@ -895,7 +896,7 @@
 
             // Overlay true f(x) shape on histogram
             noFill();
-            stroke(217, 119, 87, 120);
+            stroke(212, 94, 106, 120);
             strokeWeight(1.5);
             beginShape();
             for (let px = 0; px <= curvePlotW; px += 2) {
@@ -932,7 +933,7 @@
             let convPlotY = curY;
             let estimates = isUniform ? uniformEstimates : importanceEstimates;
 
-            fill(252, 251, 248);
+            fill(251, 252, 254);
             noStroke();
             rect(mx, convPlotY, curvePlotW, convPlotH, 4);
 
@@ -950,7 +951,7 @@
 
                 // True integral line
                 let trueY = convPlotY + convPlotH - ((trueIntegral - yMin) / (yMax - yMin)) * (convPlotH - 10);
-                stroke(120, 180, 100);
+                stroke(79, 140, 121);
                 strokeWeight(1.5);
                 line(mx, trueY, mx + curvePlotW, trueY);
 
@@ -969,7 +970,7 @@
                 // Current value
                 let lastE = estimates[estimates.length - 1];
                 let lastY = convPlotY + convPlotH - ((lastE - yMin) / (yMax - yMin)) * (convPlotH - 10);
-                fill(isUniform ? color(150, 150, 145) : color(106, 155, 204));
+                fill(isUniform ? color(140, 148, 158) : color(106, 155, 204));
                 noStroke();
                 ellipse(mx + curvePlotW, lastY, 6, 6);
             }
@@ -980,7 +981,7 @@
             textAlign(LEFT, TOP);
             fill(80);
             text('∫f(x)dx estimate → n', mx + 4, convPlotY + 4);
-            fill(120, 180, 100);
+            fill(79, 140, 121);
             textAlign(RIGHT, TOP);
             text('true = ' + trueIntegral.toFixed(4), mx + curvePlotW - 4, convPlotY + 4);
 
@@ -1009,15 +1010,15 @@
 
                 let alpha = Math.max(0, 255 - s.age * 4);
                 if (isUniform) {
-                    fill(176, 174, 165, alpha);
+                    fill(166, 173, 182, alpha);
                     noStroke();
                     ellipse(sx, curvePlotY + curvePlotH + 8, 3, 3);
                 } else {
                     let wNorm = Math.min(s.weight / 2.0, 1.0);
                     let sz = 2 + wNorm * 5;
-                    let r = lerp(106, 255, wNorm);
-                    let g = lerp(155, 80, wNorm);
-                    let b = lerp(204, 50, wNorm);
+                    let r = lerp(106, 235, wNorm);
+                    let g = lerp(155, 90, wNorm);
+                    let b = lerp(204, 105, wNorm);
                     fill(r, g, b, alpha);
                     noStroke();
                     ellipse(sx, curvePlotY + curvePlotH + 8, sz, sz);

@@ -1,9 +1,10 @@
 /* ============================================
-   Structured Warmth — Zen / Wabi Design System
+   Selene — Zen / Lunar Design System
    Fonts: Zen Maru Gothic (display), Sora (body), Source Code Pro (mono)
    ============================================ */
 
 :root {
+  color-scheme: light dark;
   /* Typography */
   --font-display: "Zen Maru Gothic", "Sora", sans-serif;
   --font-body: "Sora", "DM Sans", system-ui, sans-serif;
@@ -33,35 +34,45 @@
   /* Motion */
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
 
-  /* Light mode — 日向 (Hinata) */
-  --background: #F5F1EA;
-  --surface: #FDFCF9;
-  --surface-raised: #EDE8DF;
-  --border: #DDD6C9;
-  --border-visible: #C8BFB0;
-  --text-disabled: #A89B8A;
-  --text-secondary: #8A7E70;
-  --text-primary: #2A2520;
-  --text-display: #1C1816;
-  --accent: #B07356;
-  --interactive: #5A7E8A;
-  --success: #7B8F6A;
+  /* Light mode — 月光 (Gekko) */
+  --background: #F1F4F8;
+  --surface: #FBFCFE;
+  --surface-raised: #E6EBF1;
+  --border: #D9E0E8;
+  --border-visible: #BCC7D3;
+  --text-disabled: #8A95A3;
+  --text-secondary: #626E7D;
+  --text-primary: #1B222B;
+  --text-display: #0E151D;
+  --accent: #4A6E9B;
+  --interactive: #376E82;
+  --success: #4F8C79;
+
+  /* Glow — 蛍 (Hotaru). Moonlight barely reads on a pale ground, so light
+     mode gets a tight tinted aura and dark mode gets the real halo. */
+  --moonlight: 0 0 22px rgba(74, 110, 155, 0.13);
+  --firefly-core: rgba(74, 110, 155, 0.55);
+  --firefly-halo: rgba(74, 110, 155, 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #1C1916;
-    --surface: #252119;
-    --surface-raised: #2E2A22;
-    --border: #3A352D;
-    --border-visible: #4D463B;
-    --text-disabled: #5E5548;
-    --text-secondary: #9A8E7E;
-    --text-primary: #DDD4C6;
-    --text-display: #F0EAE0;
-    --accent: #C4845F;
-    --interactive: #7BA0AB;
-    --success: #8FA07A;
+    --background: #0F141A;
+    --surface: #161C24;
+    --surface-raised: #1E262F;
+    --border: #2A333D;
+    --border-visible: #3B4653;
+    --text-disabled: #5C6773;
+    --text-secondary: #8C99A8;
+    --text-primary: #D2DAE3;
+    --text-display: #EEF3F8;
+    --accent: #8FB4DC;
+    --interactive: #7FAABF;
+    --success: #7FBBA2;
+
+    --moonlight: 0 0 18px rgba(143, 180, 220, 0.28), 0 0 46px rgba(143, 180, 220, 0.10);
+    --firefly-core: rgba(143, 180, 220, 0.85);
+    --firefly-halo: rgba(143, 180, 220, 0.30);
   }
 }
 
@@ -139,6 +150,7 @@ h1 {
   line-height: 1.05;
   margin-bottom: var(--space-lg);
   text-wrap: balance;
+  text-shadow: var(--moonlight);
 }
 
 /* ============================================
@@ -294,7 +306,50 @@ h2 {
 .bibitem .authors .me {
   color: var(--accent);
   font-weight: 400;
+  text-shadow: 0 0 12px var(--firefly-halo);
 }
+
+/* ============================================
+   Fireflies — the equal-contribution asterisks
+   Already scattered like points of light. Each drifts on its own
+   period so they never pulse in unison; negative delays start them
+   mid-cycle so the page never opens with every one of them dark.
+   ============================================ */
+
+.bibitem .authors sup {
+  color: var(--accent);
+  text-shadow: 0 0 4px var(--firefly-halo);
+}
+
+@keyframes firefly {
+  0%, 100% { opacity: 0.5; text-shadow: 0 0 3px var(--firefly-halo); }
+  50%      { opacity: 1;   text-shadow: 0 0 7px var(--firefly-core),
+                                        0 0 16px var(--firefly-halo); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bibitem .authors sup {
+    animation: firefly var(--dur, 7s) var(--ease) infinite;
+    animation-delay: calc(var(--row, 0) * -1.7s + var(--col, 0) * -1.1s);
+    --dur: calc(6.5s + var(--row, 0) * 0.9s + var(--col, 0) * 0.6s);
+  }
+}
+
+.bibitem:nth-child(1) { --row: 0; }
+.bibitem:nth-child(2) { --row: 1; }
+.bibitem:nth-child(3) { --row: 2; }
+.bibitem:nth-child(4) { --row: 3; }
+.bibitem:nth-child(5) { --row: 4; }
+.bibitem:nth-child(6) { --row: 5; }
+.bibitem:nth-child(7) { --row: 6; }
+.bibitem:nth-child(8) { --row: 7; }
+.bibitem:nth-child(9) { --row: 8; }
+
+.authors sup:nth-of-type(1) { --col: 0; }
+.authors sup:nth-of-type(2) { --col: 1; }
+.authors sup:nth-of-type(3) { --col: 2; }
+.authors sup:nth-of-type(4) { --col: 3; }
+.authors sup:nth-of-type(5) { --col: 4; }
 
 .bibitem .venue {
   display: block;
@@ -350,24 +405,7 @@ h2:nth-of-type(2) { animation: fadeInUp 600ms var(--ease) 320ms both; }
 h2:nth-of-type(3) { animation: fadeInUp 600ms var(--ease) 400ms both; }
 .footnote         { animation: fadeInUp 600ms var(--ease) 480ms both; }
 
-/* ============================================
-   Generative elements (canvases)
-   ============================================ */
-
-#brush-cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  #brush-cursor {
-    display: none;
-  }
   h1, header, .bio, .interests, .projects, h2, .publications, .footnote {
     animation: none;
   }
