@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="An interactive gradient descent experiment. Generate loss landscapes and explore SGD, momentum, Adam, and RMSprop one step at a time.">
+  <title>Gradient Descent — Hiroaki Hayashi</title>
+  <link rel="icon" href="favicon.ico">
+  <link rel="stylesheet" href="css/site.css">
+  <link rel="stylesheet" href="css/descent.css?v=orbit-1">
+  <!-- Keep the module revision in sync with its math dependency. -->
+  <script type="module" src="js/descent.mjs?v=orbit-1"></script>
+</head>
+<body>
+  <div class="lab-wrapper">
+    <header class="lab-header"><a href="index.html#experiments">← Hiroaki Hayashi</a><span>03 / Optimization</span></header>
+    <main>
+      <div class="lab-title"><div><p class="eyebrow">Little experiments</p><h1>Finding a way down.</h1><p>One landscape. Different optimizers. Follow each decision, one step at a time.</p></div><span class="lab-name">Gradient descent</span></div>
+      <noscript><p>This experiment needs JavaScript to generate the surface and run the optimizers.</p></noscript>
+      <div class="workbench">
+        <details class="settings-drawer" open>
+        <summary>Landscape &amp; optimizer settings</summary>
+        <form id="settings" class="settings">
+          <fieldset><legend><span>01</span> Landscape</legend>
+            <label for="landscape">Surface<select id="landscape"><option value="random">Random landscape</option><option value="saddle">Saddle</option><option value="valley">Rosenbrock valley</option><option value="wells">Double well</option><option value="bowl">Elongated bowl</option></select></label>
+            <div id="random-settings">
+            <div class="field-pair"><label for="seed">Seed<input id="seed" type="number" min="0" max="4294967295" step="1" value="42" required></label><label for="minima">Local minima<select id="minima"><option value="0">0 + global</option><option value="1">1 + global</option><option value="2" selected>2 + global</option><option value="3">3 + global</option><option value="4">4 + global</option><option value="5">5 + global</option></select></label></div>
+            <button id="generate" type="button" class="full-width">↻ Generate new surface</button>
+            <p class="hint">One global minimum, plus the local minima above. The same seed recreates the same landscape.</p>
+            </div>
+            <div id="preset-settings" hidden><p class="hint" id="preset-description"></p><button type="button" id="suggested-start" class="full-width">Use suggested start</button><p class="hint">Selecting a preset places its suggested start. Your optimizer and learning rate stay unchanged.</p></div>
+          </fieldset>
+          <fieldset><legend><span>02</span> Optimizer</legend>
+            <label for="optimizer">Update rule<select id="optimizer"><option value="sgd">SGD</option><option value="momentum">SGD + momentum</option><option value="adam" selected>Adam</option><option value="rmsprop">RMSprop</option></select></label>
+            <label for="lr">Learning rate η<input id="lr" type="number" min="0.000001" max="100" step="any" value="0.05" required></label>
+            <div id="optimizer-params"></div>
+            <p class="hint" id="optimizer-description"></p>
+          </fieldset>
+          <fieldset><legend><span>03</span> Starting point</legend>
+            <div class="field-pair"><label for="start-x">x<input id="start-x" type="number" min="-3" max="3" step="any" value="-1.8" required></label><label for="start-y">y<input id="start-y" type="number" min="-3" max="3" step="any" value="1.8" required></label></div>
+            <p class="hint">Click either view to place the dot, or enter coordinates. Changes reset the trajectory.</p>
+          </fieldset>
+        </form>
+        </details>
+        <section class="instrument" aria-label="Loss landscape and optimizer trajectory">
+          <div class="display-header"><span id="surface-label">Loss landscape / seed 42</span><div class="view-control"><button id="auto-rotate" type="button" aria-pressed="true">Pause rotation</button><button id="reset-view" type="button">Reset view</button></div></div>
+          <div class="surface-wrap"><canvas id="surface" tabindex="0" aria-label="3D loss surface. Drag to orbit, or use arrow keys when focused. Home resets the view. Click to place a starting point; coordinate inputs provide a keyboard alternative." aria-describedby="orbit-help"></canvas><span class="surface-caption" id="orbit-help">Drag to orbit · click to place start · arrow keys to rotate</span><span class="surface-caption" id="height-caption">x, y ∈ [−3, 3] · height = log(1 + loss)</span></div>
+          <div class="transport"><button id="start" type="button" class="primary">▶ Start</button><button id="step" type="button">Step →</button><button id="reset" type="button">↺ Reset path</button><span>100 ms / step</span></div>
+          <div class="status-line"><span id="status" role="status" aria-live="polite">Ready</span><span id="status-detail">Choose a starting point, then start.</span></div>
+          <dl class="readouts"><div><dt>Step</dt><dd id="step-count">0000</dd></div><div><dt>Loss</dt><dd id="loss">—</dd></div><div><dt>Gradient ‖∇L‖</dt><dd id="gradient">—</dd></div><div><dt>Position (x, y)</dt><dd id="position">—</dd></div></dl>
+          <div class="lower-displays"><div class="map-panel"><div class="small-heading">Top view <span>Click to place start</span></div><canvas id="map" aria-label="Top-down loss map. Click to choose x and y; coordinate inputs provide a keyboard alternative."></canvas></div><div class="history-panel"><div class="small-heading">Loss history <span>Every accepted step</span></div><canvas id="history" aria-label="Loss over optimizer steps; current numerical loss is shown above."></canvas><div class="legend"><span><i class="path-key"></i>Trajectory</span><span>○ Local minimum</span><span>◇ Global minimum</span></div><p class="hint">Stops at the boundary, on convergence, or after 2,000 steps. Pause at any time; resume keeps the optimizer’s memory.</p></div></div>
+        </section>
+      </div>
+      <details class="method-notes"><summary>About the surface &amp; update rules</summary><p>The random surface joins alternating wells and ridges with cosine segments, bends the valley, then rotates it in the x–y plane. It has exactly the chosen number of non-global local minima and one global minimum with loss 0. Presets instead use the formulas shown in their descriptions, with fixed geometry and minimum counts. The saddle is unbounded below; its origin is a stationary point, not a minimum.</p><p>The analytic gradient of the actual loss drives optimization. Logarithmic display height only makes the landscape easier to see; negative-valued surfaces are shifted by the lowest sampled mesh value before taking the logarithm. Readouts and loss history retain the original, unshifted values.</p><p>SGD uses the exact gradient here, without minibatch noise. Momentum uses an accumulated gradient; Adam uses bias-corrected first and second moments; RMSprop uses an exponential average of squared gradients. No weight decay is applied. Convergence requires both gradient norm and step length below 0.001 for five consecutive steps.</p><p>Muon operates on matrix-valued parameters, so it is omitted from this two-coordinate experiment. Algorithm references: <a href="https://docs.pytorch.org/docs/stable/generated/torch.optim.SGD.html">SGD</a>, <a href="https://docs.pytorch.org/docs/stable/generated/torch.optim.Adam.html">Adam</a>, <a href="https://docs.pytorch.org/docs/stable/generated/torch.optim.RMSprop.html">RMSprop</a>, <a href="https://docs.pytorch.org/docs/main/generated/torch.optim.Muon.html">Muon</a>.</p></details>
+    </main>
+    <footer><span>Hiroaki Hayashi / Little experiments</span><a href="index.html#experiments">All experiments ↗</a></footer>
+  </div>
+</body>
+</html>

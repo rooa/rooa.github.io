@@ -1,0 +1,59 @@
+/* Shared material and control language for the existing interactive tools.
+   Plot colors retain their labeled mathematical meanings. Controls are neutral. */
+:root {
+  color-scheme: light;
+  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --background: #e8e7e2;
+  --surface: #f6f5f1;
+  --surface-raised: #e8e7e2;
+  --border: #c9c8c2;
+  --border-visible: #999891;
+  --text-disabled: #62615c;
+  --text-secondary: #62615c;
+  --text-primary: #171717;
+  --text-display: #171717;
+  --accent: #171717;
+  --accent-subtle: #deddd7;
+  --interactive: #171717;
+  --success: #34744f;
+  --warning: #87610c;
+  --accent-p: #365cba;
+  --accent-q: #7752a3;
+  --accent-q-fwd: #b53232;
+  --accent-q-rev: #34744f;
+  --accent-jsd: #ae480a;
+  --accent-tvd: #177487;
+  --space-3xl: 40px;
+  --space-2xl: 32px;
+}
+body { font-weight: 400; }
+.page-title { padding-bottom: 16px; border-bottom: 1px solid var(--text-primary); line-height: 2; }
+.page-title a { display: inline-flex; align-items: center; min-height: 44px; }
+.panel, .sidebar, .math-card, .viz-container, .prose, #canvas-container {
+  border-radius: 4px;
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
+.math-card { background: transparent; border: 0; border-top: 1px solid var(--border); border-radius: 0; }
+.formula, .info-box, .seed-input { border-radius: 2px; }
+.btn, .button, .preset-btn, .add-btn, .clear-btn, .remove-btn { border-radius: 4px; min-height: 44px; }
+.button.secondary, .button.tertiary { color: var(--text-primary); border-color: var(--border-visible); }
+.mode-btn { min-height: 44px; }
+.mode-btn:first-child { border-radius: 4px 0 0 4px; }
+.mode-btn:last-child { border-radius: 0 4px 4px 0; }
+input[type="range"] { min-height: 24px; }
+.slider-container input[type="range"] { min-height: 4px; padding-block: 10px; background-clip: content-box; box-sizing: content-box; }
+.kl-readout { flex-wrap: wrap; }
+.prose .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.prose p { overflow-wrap: anywhere; }
+.prose p > .katex { display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden; vertical-align: middle; }
+:focus-visible, .form-group input:focus-visible, .seed-input:focus-visible, .slider-container input[type="range"]:focus-visible { outline: 2px solid var(--text-primary); outline-offset: 4px; }
+@media (max-width: 700px) {
+  .page-wrapper > .container { flex-direction: column; }
+  .sidebar { width: 100%; position: static; max-height: none; }
+  .viz-container { padding: 16px; }
+  .viz-container > div[style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }

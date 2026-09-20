@@ -388,6 +388,7 @@
             .prose { padding: var(--space-lg); }
         }
     </style>
+    <link rel="stylesheet" href="css/instruments.css">
 </head>
 <body>
     <div class="page-wrapper">
@@ -602,7 +603,7 @@
             CH = sidebarEl.offsetHeight || 700;
             let canvas = createCanvas(CW, CH);
             canvas.parent('canvas-container');
-            textFont('Sora');
+            textFont('Helvetica Neue');
             document.querySelector('.loading').style.display = 'none';
 
             panelW = (CW - 60) / 2;
@@ -634,7 +635,7 @@
         }
 
         function draw() {
-            background(241, 244, 248);
+            background(232, 231, 226);
 
             // Layout
             let leftX = 20;
@@ -733,7 +734,7 @@
             let curvePlotW = pw - 20;
 
             // Axes background
-            fill(251, 252, 254);
+            fill(246, 245, 241);
             noStroke();
             rect(mx, curvePlotY, curvePlotW, curvePlotH, 4);
 
@@ -846,7 +847,7 @@
             // --- Section 2: Histogram ---
             let histPlotY = curY;
 
-            fill(251, 252, 254);
+            fill(246, 245, 241);
             noStroke();
             rect(mx, histPlotY, curvePlotW, histPlotH, 4);
 
@@ -933,7 +934,7 @@
             let convPlotY = curY;
             let estimates = isUniform ? uniformEstimates : importanceEstimates;
 
-            fill(251, 252, 254);
+            fill(246, 245, 241);
             noStroke();
             rect(mx, convPlotY, curvePlotW, convPlotH, 4);
 
